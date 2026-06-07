@@ -199,53 +199,55 @@
                 </div>
                 @endif
 
-                @if($workOrder->attachments->count())
-                <div style="margin-top:.85rem;padding-top:.75rem;border-top:1px solid #f0f0f0;">
-                    <p style="font-size:.78rem;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.05em;margin:0 0 .75rem;">
-                        Attachments ({{ $workOrder->attachments->count() }})
-                    </p>
-                    @if($photos->count())
-                    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:.75rem;margin-bottom:1rem;">
-                        @foreach($photos as $a)
-                        <div style="cursor:zoom-in;"
-                             onclick="openLightbox('{{ route('attachments.view', $a) }}','{{ addslashes($a->original_name) }}','{{ route('attachments.download', $a) }}')">
-                            <img src="{{ route('attachments.view', $a) }}" alt="{{ $a->original_name }}"
-                                 style="width:100%;height:110px;object-fit:cover;border-radius:6px;border:1px solid #e5e7eb;display:block;transition:opacity .15s;"
-                                 onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'">
-                            <div style="font-size:.7rem;color:#555;margin-top:.3rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="{{ $a->original_name }}">{{ $a->original_name }}</div>
-                            <div style="font-size:.68rem;color:#aaa;">{{ round($a->size_bytes/1024) }} KB</div>
-                        </div>
-                        @endforeach
-                    </div>
-                    @endif
-                    @if($docs->count())
-                    <div style="display:flex;flex-direction:column;gap:.4rem;">
-                        @foreach($docs as $a)
-                        <div style="display:flex;align-items:center;gap:.5rem;background:#f8f9fa;padding:.5rem .8rem;border-radius:5px;font-size:.85rem;border:1px solid #e5e7eb;">
-                            <span>📄</span>
-                            <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="{{ $a->original_name }}">{{ $a->original_name }}</span>
-                            <span style="color:#aaa;font-size:.75rem;flex-shrink:0;">({{ round($a->size_bytes/1024) }} KB)</span>
-                            @if(in_array($a->mime_type, $previewable))
-                            <button type="button"
-                                    onclick="openFilePreview('{{ route('attachments.view', $a) }}','{{ addslashes($a->original_name) }}','{{ route('attachments.download', $a) }}')"
-                                    style="padding:.2rem .6rem;border:1px solid var(--accent);border-radius:4px;background:#fff;color:var(--accent);font-size:.78rem;cursor:pointer;">
-                                Preview
-                            </button>
-                            @endif
-                            <a href="{{ route('attachments.download', $a) }}"
-                               style="padding:.2rem .6rem;border:1px solid #d1d5db;border-radius:4px;background:#fff;color:#555;font-size:.78rem;text-decoration:none;">
-                                Download
-                            </a>
-                        </div>
-                        @endforeach
-                    </div>
-                    @endif
-                </div>
-                @endif
 
             </div>{{-- /emp-details-body --}}
 
         </div>
+
+        {{-- Attachments --}}
+        @if($workOrder->attachments->count())
+        <div style="background:#fff;padding:1.5rem;border-radius:8px;border:1px solid #d0d5dd;box-shadow:0 1px 4px rgba(0,0,0,.07);margin-bottom:1rem;">
+            <h3 style="font-size:.95rem;color:var(--primary);margin:0 0 1rem;">
+                Attachments <span style="font-size:.8rem;font-weight:400;color:#9ca3af;">({{ $workOrder->attachments->count() }})</span>
+            </h3>
+            @if($photos->count())
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:.75rem;{{ $docs->count() ? 'margin-bottom:1rem;' : '' }}">
+                @foreach($photos as $a)
+                <div style="cursor:zoom-in;"
+                     onclick="openLightbox('{{ route('attachments.view', $a) }}','{{ addslashes($a->original_name) }}','{{ route('attachments.download', $a) }}')">
+                    <img src="{{ route('attachments.view', $a) }}" alt="{{ $a->original_name }}"
+                         style="width:100%;height:110px;object-fit:cover;border-radius:6px;border:1px solid #e5e7eb;display:block;transition:opacity .15s;"
+                         onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'">
+                    <div style="font-size:.7rem;color:#555;margin-top:.3rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="{{ $a->original_name }}">{{ $a->original_name }}</div>
+                    <div style="font-size:.68rem;color:#aaa;">{{ round($a->size_bytes/1024) }} KB</div>
+                </div>
+                @endforeach
+            </div>
+            @endif
+            @if($docs->count())
+            <div style="display:flex;flex-direction:column;gap:.4rem;">
+                @foreach($docs as $a)
+                <div style="display:flex;align-items:center;gap:.5rem;background:#f8f9fa;padding:.5rem .8rem;border-radius:5px;font-size:.85rem;border:1px solid #e5e7eb;">
+                    <span>📄</span>
+                    <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="{{ $a->original_name }}">{{ $a->original_name }}</span>
+                    <span style="color:#aaa;font-size:.75rem;flex-shrink:0;">({{ round($a->size_bytes/1024) }} KB)</span>
+                    @if(in_array($a->mime_type, $previewable))
+                    <button type="button"
+                            onclick="openFilePreview('{{ route('attachments.view', $a) }}','{{ addslashes($a->original_name) }}','{{ route('attachments.download', $a) }}')"
+                            style="padding:.2rem .6rem;border:1px solid var(--accent);border-radius:4px;background:#fff;color:var(--accent);font-size:.78rem;cursor:pointer;">
+                        Preview
+                    </button>
+                    @endif
+                    <a href="{{ route('attachments.download', $a) }}"
+                       style="padding:.2rem .6rem;border:1px solid #d1d5db;border-radius:4px;background:#fff;color:#555;font-size:.78rem;text-decoration:none;">
+                        Download
+                    </a>
+                </div>
+                @endforeach
+            </div>
+            @endif
+        </div>
+        @endif
 
         {{-- Notes --}}
         <div style="background:#fff;padding:1.5rem;border-radius:8px;border:1px solid #d0d5dd;box-shadow:0 1px 4px rgba(0,0,0,.07);">
