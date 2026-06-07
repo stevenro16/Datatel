@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 260">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#1A3C5E"/><stop offset="100%" stop-color="#0d2740"/></linearGradient>
+    <pattern id="dots" width="24" height="24" patternUnits="userSpaceOnUse"><circle cx="12" cy="12" r="1.2" fill="rgba(255,255,255,.07)"/></pattern>
+  </defs>
+  <rect width="400" height="260" fill="url(#bg)"/>
+  <rect width="400" height="260" fill="url(#dots)"/>
+  <!-- Headset arc -->
+  <path d="M128 130 Q128 65 200 65 Q272 65 272 130" fill="none" stroke="rgba(255,255,255,.7)" stroke-width="10" stroke-linecap="round"/>
+  <!-- Left ear cup -->
+  <rect x="112" y="122" width="32" height="44" rx="12" fill="rgba(46,134,193,.4)" stroke="rgba(255,255,255,.6)" stroke-width="2.5"/>
+  <rect x="120" y="130" width="16" height="28" rx="8" fill="rgba(255,255,255,.2)"/>
+  <!-- Right ear cup -->
+  <rect x="256" y="122" width="32" height="44" rx="12" fill="rgba(46,134,193,.4)" stroke="rgba(255,255,255,.6)" stroke-width="2.5"/>
+  <rect x="264" y="130" width="16" height="28" rx="8" fill="rgba(255,255,255,.2)"/>
+  <!-- Mic arm (left side) -->
+  <path d="M128 156 Q128 176 148 182" fill="none" stroke="rgba(255,255,255,.65)" stroke-width="5" stroke-linecap="round"/>
+  <!-- Mic capsule -->
+  <rect x="143" y="178" width="20" height="14" rx="7" fill="rgba(255,255,255,.85)" stroke="#2E86C1" stroke-width="2"/>
+  <!-- Sound waves from mic -->
+  <path d="M167 181 Q174 185 167 189" fill="none" stroke="rgba(46,134,193,.8)" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M172 178 Q182 185 172 192" fill="none" stroke="rgba(46,134,193,.55)" stroke-width="2" stroke-linecap="round"/>
+  <!-- VoIP signal waves above -->
+  <path d="M180 50 Q200 42 220 50" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="2" stroke-linecap="round"/>
+  <path d="M170 42 Q200 30 230 42" fill="none" stroke="rgba(255,255,255,.18)" stroke-width="2" stroke-linecap="round"/>
+  <!-- Dots representing digital signal -->
+  <circle cx="160" cy="190" r="3" fill="#2E86C1" opacity=".8"/>
+  <circle cx="200" cy="196" r="3" fill="#2E86C1" opacity=".8"/>
+  <circle cx="240" cy="190" r="3" fill="#2E86C1" opacity=".8"/>
+  <rect y="248" width="400" height="12" fill="#2E86C1"/>
+</svg>

@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 260">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#1A3C5E"/><stop offset="100%" stop-color="#0d2740"/></linearGradient>
+    <pattern id="dots" width="24" height="24" patternUnits="userSpaceOnUse"><circle cx="12" cy="12" r="1.2" fill="rgba(255,255,255,.07)"/></pattern>
+    <filter id="glow"><feGaussianBlur stdDeviation="5" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <rect width="400" height="260" fill="url(#bg)"/>
+  <rect width="400" height="260" fill="url(#dots)"/>
+  <!-- WiFi arcs - outermost (faintest) -->
+  <path d="M88 148 Q200 30 312 148" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="12" stroke-linecap="round"/>
+  <!-- WiFi arcs - middle -->
+  <path d="M118 158 Q200 68 282 158" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="12" stroke-linecap="round"/>
+  <!-- WiFi arcs - inner (brightest) -->
+  <path d="M150 168 Q200 108 250 168" fill="none" stroke="rgba(255,255,255,.85)" stroke-width="12" stroke-linecap="round"/>
+  <!-- Center dot -->
+  <circle cx="200" cy="185" r="10" fill="#fff" filter="url(#glow)"/>
+  <circle cx="200" cy="185" r="7" fill="#2E86C1"/>
+  <!-- Signal rings around the center -->
+  <circle cx="200" cy="185" r="24" fill="none" stroke="rgba(46,134,193,.3)" stroke-width="2" stroke-dasharray="5,4"/>
+  <circle cx="200" cy="185" r="40" fill="none" stroke="rgba(46,134,193,.18)" stroke-width="1.5" stroke-dasharray="5,4"/>
+  <!-- AP device below the dot -->
+  <rect x="170" y="196" width="60" height="12" rx="4" fill="rgba(255,255,255,.2)" stroke="rgba(255,255,255,.4)" stroke-width="1.5"/>
+  <circle cx="187" cy="202" r="2.5" fill="#4ade80"/>
+  <circle cx="200" cy="202" r="2.5" fill="#4ade80"/>
+  <circle cx="213" cy="202" r="2.5" fill="#facc15"/>
+  <rect x="195" y="208" width="10" height="16" rx="2" fill="rgba(255,255,255,.25)"/>
+  <rect x="175" y="220" width="50" height="6" rx="2" fill="rgba(255,255,255,.15)"/>
+  <rect y="248" width="400" height="12" fill="#2E86C1"/>
+</svg>

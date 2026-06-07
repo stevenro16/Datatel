@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 260">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#1A3C5E"/><stop offset="100%" stop-color="#0d2740"/></linearGradient>
+    <pattern id="dots" width="24" height="24" patternUnits="userSpaceOnUse"><circle cx="12" cy="12" r="1.2" fill="rgba(255,255,255,.07)"/></pattern>
+    <filter id="glow"><feGaussianBlur stdDeviation="4" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <rect width="400" height="260" fill="url(#bg)"/>
+  <rect width="400" height="260" fill="url(#dots)"/>
+  <!-- Shield outline -->
+  <path d="M200 40 L260 65 L260 120 Q260 165 200 195 Q140 165 140 120 L140 65 Z"
+        fill="rgba(46,134,193,.18)" stroke="rgba(255,255,255,.5)" stroke-width="2.5" stroke-linejoin="round"/>
+  <!-- Shield inner -->
+  <path d="M200 55 L248 76 L248 120 Q248 155 200 180 Q152 155 152 120 L152 76 Z"
+        fill="rgba(46,134,193,.12)" stroke="rgba(255,255,255,.2)" stroke-width="1" stroke-linejoin="round"/>
+  <!-- Camera body -->
+  <rect x="172" y="100" width="48" height="34" rx="6" fill="rgba(255,255,255,.9)"/>
+  <!-- Camera lens -->
+  <circle cx="196" cy="117" r="11" fill="#1A3C5E"/>
+  <circle cx="196" cy="117" r="7" fill="#0d2740"/>
+  <circle cx="196" cy="117" r="3.5" fill="#2E86C1"/>
+  <circle cx="193" cy="114" r="1.5" fill="rgba(255,255,255,.7)"/>
+  <!-- Camera mount arm -->
+  <rect x="208" y="105" width="20" height="8" rx="3" fill="rgba(255,255,255,.7)"/>
+  <rect x="224" y="95" width="8" height="24" rx="3" fill="rgba(255,255,255,.5)"/>
+  <!-- Status light on camera -->
+  <circle cx="180" cy="107" r="3" fill="#4ade80" filter="url(#glow)"/>
+  <!-- Checkmark in shield center bottom -->
+  <path d="M185 145 L195 155 L215 132" stroke="#4ade80" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <rect y="248" width="400" height="12" fill="#2E86C1"/>
+</svg>

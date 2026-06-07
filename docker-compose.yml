@@ -1,0 +1,62 @@
+services:
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: datatel_app
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - .:/var/www/html
+    environment:
+      APP_ENV: local
+      APP_DEBUG: "true"
+    networks:
+      - datatel
+
+  # MySQL — only needed when testing with DB_CONNECTION=mysql
+  db:
+    image: mysql:8.0
+    container_name: datatel_db
+    restart: unless-stopped
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: secret
+      MYSQL_DATABASE: datatel
+      MYSQL_USER: datatel
+      MYSQL_PASSWORD: secret
+    volumes:
+      - dbdata:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-psecret"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - datatel
+
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: datatel_phpmyadmin
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    environment:
+      PMA_HOST: db
+      PMA_USER: datatel
+      PMA_PASSWORD: secret
+    depends_on:
+      - db
+    networks:
+      - datatel
+
+networks:
+  datatel:
+    driver: bridge
+
+volumes:
+  dbdata:
+    driver: local

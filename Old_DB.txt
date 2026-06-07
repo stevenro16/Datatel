@@ -1,0 +1,436 @@
+USE [master]
+GO
+/****** Object:  Database [dataTelData]    Script Date: 09/09/2010 19:50:42 ******/
+CREATE DATABASE [dataTelData] ON  PRIMARY 
+( NAME = N'dataTelData', FILENAME = N'C:\Program Files\Microsoft SQL Server\MSSQL.1\MSSQL\DATA\dataTelData.mdf' , SIZE = 16576KB , MAXSIZE = UNLIMITED, FILEGROWTH = 1024KB )
+ LOG ON 
+( NAME = N'dataTelData_log', FILENAME = N'C:\Program Files\Microsoft SQL Server\MSSQL.1\MSSQL\DATA\dataTelData_log.LDF' , SIZE = 32448KB , MAXSIZE = 2048GB , FILEGROWTH = 10%)
+GO
+EXEC dbo.sp_dbcmptlevel @dbname=N'dataTelData', @new_cmptlevel=90
+GO
+IF (1 = FULLTEXTSERVICEPROPERTY('IsFullTextInstalled'))
+begin
+EXEC [dataTelData].[dbo].[sp_fulltext_database] @action = 'enable'
+end
+GO
+ALTER DATABASE [dataTelData] SET ANSI_NULL_DEFAULT OFF 
+GO
+ALTER DATABASE [dataTelData] SET ANSI_NULLS OFF 
+GO
+ALTER DATABASE [dataTelData] SET ANSI_PADDING OFF 
+GO
+ALTER DATABASE [dataTelData] SET ANSI_WARNINGS OFF 
+GO
+ALTER DATABASE [dataTelData] SET ARITHABORT OFF 
+GO
+ALTER DATABASE [dataTelData] SET AUTO_CLOSE ON 
+GO
+ALTER DATABASE [dataTelData] SET AUTO_CREATE_STATISTICS ON 
+GO
+ALTER DATABASE [dataTelData] SET AUTO_SHRINK OFF 
+GO
+ALTER DATABASE [dataTelData] SET AUTO_UPDATE_STATISTICS ON 
+GO
+ALTER DATABASE [dataTelData] SET CURSOR_CLOSE_ON_COMMIT OFF 
+GO
+ALTER DATABASE [dataTelData] SET CURSOR_DEFAULT  GLOBAL 
+GO
+ALTER DATABASE [dataTelData] SET CONCAT_NULL_YIELDS_NULL OFF 
+GO
+ALTER DATABASE [dataTelData] SET NUMERIC_ROUNDABORT OFF 
+GO
+ALTER DATABASE [dataTelData] SET QUOTED_IDENTIFIER OFF 
+GO
+ALTER DATABASE [dataTelData] SET RECURSIVE_TRIGGERS OFF 
+GO
+ALTER DATABASE [dataTelData] SET  ENABLE_BROKER 
+GO
+ALTER DATABASE [dataTelData] SET AUTO_UPDATE_STATISTICS_ASYNC OFF 
+GO
+ALTER DATABASE [dataTelData] SET DATE_CORRELATION_OPTIMIZATION OFF 
+GO
+ALTER DATABASE [dataTelData] SET TRUSTWORTHY OFF 
+GO
+ALTER DATABASE [dataTelData] SET ALLOW_SNAPSHOT_ISOLATION OFF 
+GO
+ALTER DATABASE [dataTelData] SET PARAMETERIZATION SIMPLE 
+GO
+ALTER DATABASE [dataTelData] SET  READ_WRITE 
+GO
+ALTER DATABASE [dataTelData] SET RECOVERY SIMPLE 
+GO
+ALTER DATABASE [dataTelData] SET  MULTI_USER 
+GO
+ALTER DATABASE [dataTelData] SET PAGE_VERIFY CHECKSUM  
+GO
+ALTER DATABASE [dataTelData] SET DB_CHAINING OFF 
+
+USE [dataTelData]
+GO
+/****** Object:  Table [dbo].[custInventory]    Script Date: 09/09/2010 19:44:16 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_PADDING ON
+GO
+CREATE TABLE [dbo].[custInventory](
+	[custInventoryID] [smallint] IDENTITY(1,1) NOT NULL,
+	[custNum] [varchar](50) NULL,
+	[itemName] [varchar](50) NULL,
+	[dts] [varchar](100) NULL,
+	[sn] [varchar](100) NULL,
+	[warranty] [varchar](20) NULL,
+	[qty] [varchar](10) NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[custInventoryID] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+GO
+SET ANSI_PADDING OFF
+USE [dataTelData]
+GO
+/****** Object:  Table [dbo].[customers]    Script Date: 09/09/2010 19:49:12 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_PADDING ON
+GO
+CREATE TABLE [dbo].[customers](
+	[customerId] [int] IDENTITY(10000,1) NOT NULL,
+	[name] [varchar](100) NULL,
+	[systemInstalled] [varchar](50) NULL,
+	[accountStatus] [varchar](15) NULL,
+	[cutDate] [varchar](15) NULL,
+	[amount] [varchar](15) NULL,
+	[installedBy] [varchar](50) NULL,
+	[software] [varchar](50) NULL,
+	[soldBy] [varchar](50) NULL,
+	[longDistance] [varchar](20) NULL,
+	[industry] [varchar](50) NULL,
+	[faxNumber] [varchar](20) NULL,
+	[zone] [varchar](15) NULL,
+	[csr] [varchar](15) NULL,
+	[notes] [text] NULL,
+	[siteName] [varchar](50) NULL,
+	[siteStreet] [varchar](50) NULL,
+	[siteCity] [varchar](50) NULL,
+	[siteState] [varchar](4) NULL,
+	[siteZip] [varchar](15) NULL,
+	[siteCounty] [varchar](30) NULL,
+	[siteAtt] [varchar](50) NULL,
+	[sitePhone] [varchar](15) NULL,
+	[billName] [varchar](50) NULL,
+	[billStreet] [varchar](50) NULL,
+	[billCity] [varchar](50) NULL,
+	[billState] [varchar](4) NULL,
+	[billZip] [varchar](15) NULL,
+	[billCounty] [varchar](30) NULL,
+	[billAtt] [varchar](50) NULL,
+	[billPhone] [varchar](15) NULL,
+	[expiresOn] [varchar](15) NULL,
+	[contractAmount] [varchar](15) NULL,
+	[taxID] [varchar](20) NULL,
+	[trip] [varchar](15) NULL,
+	[MAContractNum] [varchar](20) NULL,
+	[emailAddress] [varchar](100) NULL,
+	[matTaxRate] [varchar](15) NULL,
+	[laborTaxRate] [varchar](15) NULL,
+	[creditLimit] [varchar](15) NULL,
+	[hourlyLaborRate] [varchar](15) NULL,
+	[overtimeRate] [varchar](15) NULL,
+	[lastActivity] [varchar](15) NULL,
+	[tripChargeRate] [varchar](15) NULL,
+	[tripTaxRate] [varchar](15) NULL,
+	[yearToDate] [varchar](15) NULL,
+	[firstHourPre] [varchar](15) NULL,
+	[travelHrRate] [varchar](15) NULL,
+	[businesStart] [varchar](15) NULL,
+	[businesEnd] [varchar](15) NULL,
+	[directions] [text] NULL,
+	[website] [varchar](100) NULL,
+	[warrantyMonths] [varchar](15) NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[customerId] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+
+GO
+SET ANSI_PADDING OFF
+
+
+USE [dataTelData]
+GO
+/****** Object:  Table [dbo].[inventoryItems]    Script Date: 09/09/2010 19:45:52 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_PADDING ON
+GO
+CREATE TABLE [dbo].[inventoryItems](
+	[itemId] [smallint] IDENTITY(1,1) NOT NULL,
+	[itemName] [varchar](50) NULL,
+	[itemBrand] [varchar](50) NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[itemId] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+GO
+SET ANSI_PADDING OFF
+
+USE [dataTelData]
+GO
+/****** Object:  Table [dbo].[invoice]    Script Date: 09/09/2010 19:46:10 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_PADDING ON
+GO
+CREATE TABLE [dbo].[invoice](
+	[invoiceId] [smallint] IDENTITY(19450,1) NOT NULL,
+	[customer] [varchar](250) NULL,
+	[installedAt] [varchar](250) NULL,
+	[hoursWorked] [varchar](50) NULL,
+	[pricePerHour] [varchar](50) NULL,
+	[overtimeWorked] [varchar](50) NULL,
+	[pricePerOvertime] [varchar](50) NULL,
+	[salesTax] [varchar](50) NULL,
+	[totalLabor] [varchar](50) NULL,
+	[totalOvertime] [varchar](50) NULL,
+	[grandTotal] [varchar](50) NULL,
+	[status] [varchar](50) NULL,
+	[created] [varchar](150) NULL,
+	[invoiceDate] [varchar](50) NULL,
+	[OurOrderNumber] [varchar](50) NULL,
+	[yourOrderNumber] [varchar](50) NULL,
+	[jobDate] [varchar](50) NULL,
+	[Terms] [varchar](50) NULL,
+	[Clerk] [varchar](50) NULL,
+	[salesman] [varchar](50) NULL,
+	[descrip] [text] NULL,
+	[tripCharge] [varchar](50) NULL,
+ CONSTRAINT [PK_invoice] PRIMARY KEY CLUSTERED 
+(
+	[invoiceId] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+
+GO
+SET ANSI_PADDING OFF
+
+USE [dataTelData]
+GO
+/****** Object:  Table [dbo].[invoiceItem]    Script Date: 09/09/2010 19:46:22 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_PADDING ON
+GO
+CREATE TABLE [dbo].[invoiceItem](
+	[invoiceItem] [smallint] IDENTITY(1,1) NOT NULL,
+	[invoiceId] [smallint] NULL,
+	[descrip] [varchar](250) NULL,
+	[quantity] [varchar](50) NULL,
+	[cost] [varchar](50) NULL,
+	[vis] [smallint] NULL,
+ CONSTRAINT [PK_invoiceItem] PRIMARY KEY CLUSTERED 
+(
+	[invoiceItem] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+GO
+SET ANSI_PADDING OFF
+
+USE [dataTelData]
+GO
+/****** Object:  Table [dbo].[pickList]    Script Date: 09/09/2010 19:46:34 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_PADDING ON
+GO
+CREATE TABLE [dbo].[pickList](
+	[pickListID] [smallint] IDENTITY(1,1) NOT NULL,
+	[fieldText] [varchar](50) NULL,
+	[fieldNum] [smallint] NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[pickListID] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+GO
+SET ANSI_PADDING OFF
+
+USE [dataTelData]
+GO
+/****** Object:  Table [dbo].[requestForCheck]    Script Date: 09/09/2010 19:46:44 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_PADDING ON
+GO
+CREATE TABLE [dbo].[requestForCheck](
+	[requestNum] [smallint] IDENTITY(10000,1) NOT NULL,
+	[date] [varchar](15) NULL,
+	[payableTo] [varchar](50) NULL,
+	[customer] [varchar](50) NULL,
+	[requestedBy] [varchar](50) NULL,
+	[mailTo] [varchar](2) NULL,
+	[mailToText] [varchar](50) NULL,
+	[install] [varchar](2) NULL,
+	[installText] [varchar](50) NULL,
+	[preparedBy] [varchar](50) NULL,
+	[approvedBy] [varchar](50) NULL,
+	[checkNum] [varchar](20) NULL,
+	[freight] [varchar](20) NULL,
+	[poNum] [varchar](25) NULL,
+	[cancelRequest] [varchar](50) NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[requestNum] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+GO
+SET ANSI_PADDING OFF
+
+USE [dataTelData]
+GO
+/****** Object:  Table [dbo].[requestForCheckItems]    Script Date: 09/09/2010 19:46:54 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_PADDING ON
+GO
+CREATE TABLE [dbo].[requestForCheckItems](
+	[itemId] [smallint] IDENTITY(1,1) NOT NULL,
+	[requestNum] [smallint] NULL,
+	[qty] [varchar](10) NULL,
+	[partNum] [varchar](20) NULL,
+	[description] [varchar](200) NULL,
+	[unitPrice] [varchar](20) NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[itemId] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+GO
+SET ANSI_PADDING OFF
+
+USE [dataTelData]
+GO
+/****** Object:  Table [dbo].[serviceCalls]    Script Date: 09/09/2010 19:47:03 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_PADDING ON
+GO
+CREATE TABLE [dbo].[serviceCalls](
+	[callId] [int] IDENTITY(1,1) NOT NULL,
+	[customerNum] [smallint] NULL,
+	[problem] [text] NULL,
+	[billingCode] [varchar](50) NULL,
+	[PONumber] [varchar](20) NULL,
+	[takenBy] [varchar](30) NULL,
+	[siteContact] [varchar](30) NULL,
+	[orderNumber] [varchar](20) NULL,
+	[tech] [varchar](30) NULL,
+	[timeIn] [varchar](10) NULL,
+	[dueDate] [varchar](15) NULL,
+	[status] [varchar](10) NULL,
+	[comments] [text] NULL,
+	[dateOfTicket] [varchar](15) NULL,
+ CONSTRAINT [PK__serviceCalls__0425A276] PRIMARY KEY CLUSTERED 
+(
+	[callId] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+
+GO
+SET ANSI_PADDING OFF
+
+USE [dataTelData]
+GO
+/****** Object:  Table [dbo].[settings]    Script Date: 09/09/2010 19:47:13 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_PADDING ON
+GO
+CREATE TABLE [dbo].[settings](
+	[settingID] [smallint] IDENTITY(1,1) NOT NULL,
+	[setting] [varchar](50) NULL,
+	[value] [varchar](50) NULL,
+	[userID] [smallint] NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[settingID] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+GO
+SET ANSI_PADDING OFF
+
+USE [dataTelData]
+GO
+/****** Object:  Table [dbo].[userAccounts]    Script Date: 09/09/2010 19:48:21 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_PADDING ON
+GO
+CREATE TABLE [dbo].[userAccounts](
+	[userAccountID] [smallint] IDENTITY(1,1) NOT NULL,
+	[userName] [varchar](50) NULL,
+	[password] [varchar](50) NULL,
+	[accountLevel] [varchar](10) NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[userAccountID] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+GO
+SET ANSI_PADDING OFF
+
+USE [dataTelData]
+GO
+/****** Object:  Table [dbo].[userLog]    Script Date: 09/09/2010 19:48:32 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_PADDING ON
+GO
+CREATE TABLE [dbo].[userLog](
+	[userLogID] [smallint] IDENTITY(1,1) NOT NULL,
+	[userName] [varchar](50) NULL,
+	[computerName] [varchar](50) NULL,
+	[time] [varchar](10) NULL,
+	[date] [varchar](10) NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[userLogID] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+GO
+SET ANSI_PADDING OFF

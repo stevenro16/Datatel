@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 260">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#1A3C5E"/><stop offset="100%" stop-color="#0d2740"/></linearGradient>
+    <pattern id="dots" width="24" height="24" patternUnits="userSpaceOnUse"><circle cx="12" cy="12" r="1.2" fill="rgba(255,255,255,.07)"/></pattern>
+  </defs>
+  <rect width="400" height="260" fill="url(#bg)"/>
+  <rect width="400" height="260" fill="url(#dots)"/>
+  <!-- Server rack units -->
+  <g fill="rgba(255,255,255,.13)" stroke="rgba(255,255,255,.35)" stroke-width="1.5">
+    <rect x="90" y="50" width="220" height="32" rx="5"/>
+    <rect x="90" y="90" width="220" height="32" rx="5"/>
+    <rect x="90" y="130" width="220" height="32" rx="5"/>
+    <rect x="90" y="170" width="220" height="32" rx="5"/>
+  </g>
+  <!-- Status LEDs on each unit -->
+  <circle cx="108" cy="66" r="5" fill="#4ade80"/>
+  <circle cx="122" cy="66" r="5" fill="#4ade80"/>
+  <circle cx="136" cy="66" r="5" fill="#facc15"/>
+  <circle cx="108" cy="106" r="5" fill="#4ade80"/>
+  <circle cx="122" cy="106" r="5" fill="#4ade80"/>
+  <circle cx="136" cy="106" r="5" fill="#4ade80"/>
+  <circle cx="108" cy="146" r="5" fill="#4ade80"/>
+  <circle cx="122" cy="146" r="5" fill="#facc15"/>
+  <circle cx="136" cy="146" r="5" fill="#4ade80"/>
+  <circle cx="108" cy="186" r="5" fill="#4ade80"/>
+  <circle cx="122" cy="186" r="5" fill="#4ade80"/>
+  <circle cx="136" cy="186" r="5" fill="#4ade80"/>
+  <!-- Drive bays -->
+  <g fill="rgba(255,255,255,.25)" stroke="rgba(255,255,255,.2)" stroke-width="1">
+    <rect x="160" y="57" width="28" height="18" rx="3"/>
+    <rect x="193" y="57" width="28" height="18" rx="3"/>
+    <rect x="226" y="57" width="28" height="18" rx="3"/>
+    <rect x="259" y="57" width="28" height="18" rx="3"/>
+    <rect x="160" y="97" width="28" height="18" rx="3"/>
+    <rect x="193" y="97" width="28" height="18" rx="3"/>
+    <rect x="226" y="97" width="28" height="18" rx="3"/>
+    <rect x="259" y="97" width="28" height="18" rx="3"/>
+  </g>
+  <!-- Port strip at bottom of each rack unit -->
+  <g fill="#2E86C1" opacity=".7">
+    <rect x="160" y="137" width="130" height="18" rx="3"/>
+    <rect x="160" y="177" width="130" height="18" rx="3"/>
+  </g>
+  <!-- Network connections bottom -->
+  <g stroke="rgba(255,255,255,.3)" stroke-width="1.5" fill="none" stroke-dasharray="4,3">
+    <line x1="200" y1="202" x2="200" y2="228"/>
+    <line x1="160" y1="228" x2="240" y2="228"/>
+    <line x1="160" y1="220" x2="160" y2="235"/>
+    <line x1="240" y1="220" x2="240" y2="235"/>
+  </g>
+  <!-- Rack rails -->
+  <rect x="85" y="44" width="8" height="164" rx="2" fill="rgba(255,255,255,.15)" stroke="rgba(255,255,255,.3)" stroke-width="1"/>
+  <rect x="307" y="44" width="8" height="164" rx="2" fill="rgba(255,255,255,.15)" stroke="rgba(255,255,255,.3)" stroke-width="1"/>
+  <rect y="248" width="400" height="12" fill="#2E86C1"/>
+</svg>
