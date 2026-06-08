@@ -238,8 +238,39 @@ class WorkOrderController extends Controller
         return $result ?: null;
     }
 
-    public function show(WorkOrder $workOrder)
+    public function show(Request $request, WorkOrder $workOrder)
     {
+        // Track which activity the admin came from so the back button returns to the right place.
+        // The originating page passes ?from=<source>&from_id=<id>; we cache it per-WO in the session
+        // so it survives refreshes and back()-redirects from actions on the show page itself.
+        $allowedFrom = ['work-orders', 'dashboard', 'calendar', 'invoice', 'company', 'customer'];
+        $from        = $request->query('from');
+        $fromId      = $request->query('from_id');
+        $sessionKey  = 'wo_back_' . $workOrder->id;
+
+        if ($from && in_array($from, $allowedFrom, true)) {
+            session()->put($sessionKey, ['from' => $from, 'from_id' => $fromId]);
+        }
+        $back = session($sessionKey, ['from' => 'work-orders', 'from_id' => null]);
+
+        [$backUrl, $backLabel] = match ($back['from']) {
+            'dashboard' => [route('admin.dashboard'), 'Dashboard'],
+            'calendar'  => [route('admin.calendar'),  'Calendar'],
+            'invoice'   => [
+                $back['from_id'] ? route('admin.invoices.show', $back['from_id']) : route('admin.invoices.index'),
+                'Invoice',
+            ],
+            'company'   => [
+                $back['from_id'] ? route('admin.analytics.companies', ['company_id' => $back['from_id']]) : route('admin.analytics.companies'),
+                'Company Analytics',
+            ],
+            'customer'  => [
+                $back['from_id'] ? route('admin.analytics.customers', ['customer_id' => $back['from_id']]) : route('admin.analytics.customers'),
+                'Customer Analytics',
+            ],
+            default     => [route('admin.work-orders.index'), 'Work Orders'],
+        };
+
         WorkOrderNote::where('work_order_id', $workOrder->id)
             ->whereIn('user_id', User::where('role', '!=', User::ROLE_ADMIN)->select('id'))
             ->whereNull('read_at')
@@ -364,7 +395,7 @@ class WorkOrderController extends Controller
         $siteArrival   = $timeEntries->min('clocked_in_at');
         $siteDeparture = $timeEntries->filter(fn($t) => $t->clocked_out_at)->max('clocked_out_at');
 
-        return view('admin.work-orders.show', compact('workOrder', 'employees', 'serviceTypes', 'completedCount', 'customerHasConfirmed', 'siteAccountAddress', 'sitePriorAddresses', 'addressSuggestions', 'previousOrders', 'relatedOrders', 'siteArrival', 'siteDeparture', 'companyAddresses'));
+        return view('admin.work-orders.show', compact('workOrder', 'employees', 'serviceTypes', 'completedCount', 'customerHasConfirmed', 'siteAccountAddress', 'sitePriorAddresses', 'addressSuggestions', 'previousOrders', 'relatedOrders', 'siteArrival', 'siteDeparture', 'companyAddresses', 'backUrl', 'backLabel'));
     }
 
     public function edit(WorkOrder $workOrder)
@@ -746,8 +777,10 @@ class WorkOrderController extends Controller
             'date'       => 'required|date',
             'tech_ids'   => 'nullable|array',
             'tech_ids.*' => 'integer|exists:users,id',
+            'visit_id'   => 'nullable|integer',
         ]);
-        $date = $data['date'];
+        $date    = $data['date'];
+        $visitId = $data['visit_id'] ?? null;
 
         // Use explicitly requested tech IDs if provided; otherwise fall back to WO assignments
         $ids = !empty($data['tech_ids'])
@@ -758,13 +791,23 @@ class WorkOrderController extends Controller
             return response()->json([]);
         }
 
-        // Collect all visits on that date for WOs assigned to the same techs (excluding current WO)
-        $visits = WorkOrderVisit::with(['workOrder.assignments'])
+        // Collect all visits on that date for any WO assigned to one of these techs.
+        // A visit "belongs to" a tech if either:
+        //   (a) the visit has explicit visit-level techs and this tech is one of them, OR
+        //   (b) the visit has no visit-level techs and the tech is on the WO's assignments.
+        // When editing a specific visit, exclude only that visit — not the rest of its work order.
+        $visits = WorkOrderVisit::with(['workOrder.assignments', 'techs'])
             ->whereDate('scheduled_at', $date)
-            ->whereHas('workOrder', function ($q) use ($ids, $workOrder) {
-                $q->where('id', '!=', $workOrder->id)
-                  ->whereNotIn('status', [WorkOrder::STATUS_CANCELED, WorkOrder::STATUS_COMPLETED])
-                  ->whereHas('assignments', fn($aq) => $aq->whereIn('user_id', $ids));
+            ->when($visitId, fn($q) => $q->where('id', '!=', $visitId))
+            ->whereHas('workOrder', function ($q) {
+                $q->whereNotIn('status', [WorkOrder::STATUS_CANCELED, WorkOrder::STATUS_COMPLETED]);
+            })
+            ->where(function ($q) use ($ids) {
+                $q->whereHas('techs', fn ($t) => $t->whereIn('user_id', $ids))
+                  ->orWhere(function ($q2) use ($ids) {
+                      $q2->whereDoesntHave('techs')
+                         ->whereHas('workOrder.assignments', fn ($aq) => $aq->whereIn('user_id', $ids));
+                  });
             })
             ->get();
 
@@ -774,7 +817,13 @@ class WorkOrderController extends Controller
             'id'     => $tech->id,
             'name'   => $tech->name,
             'orders' => $visits
-                ->filter(fn($v) => $v->workOrder->assignments->contains('user_id', $tech->id))
+                ->filter(function ($v) use ($tech) {
+                    // Visit-level techs take precedence; fall back to WO-level assignments
+                    if ($v->techs->isNotEmpty()) {
+                        return $v->techs->contains('user_id', $tech->id);
+                    }
+                    return $v->workOrder->assignments->contains('user_id', $tech->id);
+                })
                 ->map(fn($v) => [
                     'id'        => $v->workOrder->id,
                     'wo_number' => $v->workOrder->wo_number,

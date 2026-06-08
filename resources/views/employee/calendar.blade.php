@@ -2,8 +2,9 @@
 @section('title', 'My Calendar')
 
 @php
-    $dayUrl  = fn ($d) => route('employee.calendar', ['view' => 'day',  'date' => (is_string($d) ? $d : $d->toDateString())]);
-    $weekUrl = fn ($d) => route('employee.calendar', ['view' => 'week', 'date' => (is_string($d) ? $d : $d->toDateString())]);
+    $dayUrl     = fn ($d) => route('employee.calendar', ['view' => 'day',     'date' => (is_string($d) ? $d : $d->toDateString())]);
+    $twoDayUrl  = fn ($d) => route('employee.calendar', ['view' => 'two-day', 'date' => (is_string($d) ? $d : $d->toDateString())]);
+    $weekUrl    = fn ($d) => route('employee.calendar', ['view' => 'week',    'date' => (is_string($d) ? $d : $d->toDateString())]);
 
     $statusLabel = fn ($s) => match ($s) {
         'new'                => 'New',
@@ -33,6 +34,13 @@
     $prevDay = $focusDate->copy()->subDay();
     $nextDay = $focusDate->copy()->addDay();
 
+    // Two-day view navigation (jumps 2 days at a time)
+    if ($view === 'two-day') {
+        $prev2Day = $focusDate->copy()->subDays(2);
+        $next2Day = $focusDate->copy()->addDays(2);
+        $secondDate = $focusDate->copy()->addDay();
+    }
+
     // Week view navigation
     if ($view === 'week') {
         $prevWeek = $weekStart->copy()->subWeek();
@@ -49,8 +57,24 @@
 
 @section('content')
 
+<style>
+@media (max-width: 768px) {
+    .cal-day-grid { flex-direction: column; }
+    #cal-timeline { width: 100%; height: 62vh; min-height: 320px; }
+    .cal-side { width: 100% !important; height: auto !important; min-height: 0 !important; }
+    .cal-datelabel { min-width: 0 !important; font-size: .92rem !important; }
+    .cal-toolbar { gap: .5rem !important; }
+    .cal-toolbar .cal-datenav { order: 3; width: 100%; justify-content: center; }
+    /* Keep two-day side-by-side on mobile, just tighten so both fit on a phone */
+    .cal-twoday-grid { gap: .4rem !important; }
+    .cal-twoday-tl { height: 65vh !important; min-height: 320px !important; }
+    .cal-twoday-dayhead { padding: .45rem .55rem !important; gap: .35rem !important; }
+    .cal-twoday-dayhead .cal-twoday-dayview-link { display: none; }
+}
+</style>
+
 {{-- ── Toolbar ── --}}
-<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:.75rem;">
+<div class="cal-toolbar" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:.75rem;">
 
     {{-- View toggle --}}
     <div style="display:flex;border:1px solid #d1d5db;border-radius:6px;overflow:hidden;">
@@ -58,6 +82,10 @@
            style="padding:.4rem 1rem;font-size:.85rem;font-weight:600;text-decoration:none;
                   background:{{ $view === 'day' ? 'var(--primary)' : '#fff' }};
                   color:{{ $view === 'day' ? '#fff' : '#555' }};">Day</a>
+        <a href="{{ $twoDayUrl($focusDate) }}"
+           style="padding:.4rem 1rem;font-size:.85rem;font-weight:600;text-decoration:none;border-left:1px solid #d1d5db;
+                  background:{{ $view === 'two-day' ? 'var(--primary)' : '#fff' }};
+                  color:{{ $view === 'two-day' ? '#fff' : '#555' }};">2 Day</a>
         <a href="{{ $weekUrl($focusDate) }}"
            style="padding:.4rem 1rem;font-size:.85rem;font-weight:600;text-decoration:none;border-left:1px solid #d1d5db;
                   background:{{ $view === 'week' ? 'var(--primary)' : '#fff' }};
@@ -66,18 +94,27 @@
 
     {{-- Date navigation --}}
     @if($view === 'day')
-    <div style="display:flex;align-items:center;gap:.75rem;">
+    <div class="cal-datenav" style="display:flex;align-items:center;gap:.75rem;">
         <a href="{{ $dayUrl($prevDay) }}" style="padding:.4rem .85rem;border:1px solid #d1d5db;border-radius:6px;text-decoration:none;color:#555;font-size:.9rem;background:#fff;">&#8592;</a>
-        <span style="font-size:1rem;font-weight:700;color:var(--primary);min-width:220px;text-align:center;">
+        <span class="cal-datelabel" style="font-size:1rem;font-weight:700;color:var(--primary);min-width:220px;text-align:center;">
             {{ $focusDate->format('l, F j, Y') }}
             @if($focusDate->isToday())<span style="font-size:.75rem;font-weight:600;background:var(--accent);color:#fff;padding:.1rem .5rem;border-radius:4px;margin-left:.5rem;">Today</span>@endif
         </span>
         <a href="{{ $dayUrl($nextDay) }}" style="padding:.4rem .85rem;border:1px solid #d1d5db;border-radius:6px;text-decoration:none;color:#555;font-size:.9rem;background:#fff;">&#8594;</a>
     </div>
+    @elseif($view === 'two-day')
+    <div class="cal-datenav" style="display:flex;align-items:center;gap:.75rem;">
+        <a href="{{ $twoDayUrl($prev2Day) }}" style="padding:.4rem .85rem;border:1px solid #d1d5db;border-radius:6px;text-decoration:none;color:#555;font-size:.9rem;background:#fff;">&#8592;</a>
+        <span class="cal-datelabel" style="font-size:1rem;font-weight:700;color:var(--primary);min-width:240px;text-align:center;">
+            {{ $focusDate->format('D, M j') }} – {{ $secondDate->format('D, M j, Y') }}
+            @if($focusDate->isToday() || $secondDate->isToday())<span style="font-size:.75rem;font-weight:600;background:var(--accent);color:#fff;padding:.1rem .5rem;border-radius:4px;margin-left:.5rem;">Today</span>@endif
+        </span>
+        <a href="{{ $twoDayUrl($next2Day) }}" style="padding:.4rem .85rem;border:1px solid #d1d5db;border-radius:6px;text-decoration:none;color:#555;font-size:.9rem;background:#fff;">&#8594;</a>
+    </div>
     @else
-    <div style="display:flex;align-items:center;gap:.75rem;">
+    <div class="cal-datenav" style="display:flex;align-items:center;gap:.75rem;">
         <a href="{{ $weekUrl($prevWeek) }}" style="padding:.4rem .85rem;border:1px solid #d1d5db;border-radius:6px;text-decoration:none;color:#555;font-size:.9rem;background:#fff;">&#8592;</a>
-        <span style="font-size:1rem;font-weight:700;color:var(--primary);min-width:240px;text-align:center;">
+        <span class="cal-datelabel" style="font-size:1rem;font-weight:700;color:var(--primary);min-width:240px;text-align:center;">
             {{ $weekStart->format('M j') }} – {{ $weekEnd->format('M j, Y') }}
         </span>
         <a href="{{ $weekUrl($nextWeek) }}" style="padding:.4rem .85rem;border:1px solid #d1d5db;border-radius:6px;text-decoration:none;color:#555;font-size:.9rem;background:#fff;">&#8594;</a>
@@ -85,7 +122,7 @@
     @endif
 
     {{-- Today shortcut --}}
-    <a href="{{ $view === 'week' ? $weekUrl(today()) : $dayUrl(today()) }}"
+    <a href="{{ $view === 'week' ? $weekUrl(today()) : ($view === 'two-day' ? $twoDayUrl(today()) : $dayUrl(today())) }}"
        style="padding:.4rem .9rem;border:1px solid #d1d5db;border-radius:6px;text-decoration:none;color:#555;font-size:.85rem;background:#fff;">
         Today
     </a>
@@ -96,7 +133,7 @@
 ══════════════════════════════════════════ --}}
 @if($view === 'day')
 
-<div style="display:flex;gap:1.5rem;align-items:flex-start;">
+<div class="cal-day-grid" style="display:flex;gap:1.5rem;align-items:flex-start;">
 
     {{-- Timeline --}}
     <div id="cal-timeline" style="flex:1;background:#fff;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.07);overflow-y:auto;height:calc(100vh - 220px);min-height:400px;">
@@ -130,7 +167,7 @@
 
                 $bg           = $urgencyBg($wo->urgency);
                 $color        = $urgencyColor($wo->urgency);
-                $isUnverified = $wo->confirmation_status !== \App\Models\WorkOrder::CONFIRMATION_CONFIRMED;
+                $isUnverified = $visit->confirmation_status === \App\Models\WorkOrderVisit::CONFIRMATION_PENDING;
             @endphp
             <a href="{{ route('employee.work-orders.visits.show', [$wo, $visit]) }}"
                style="position:absolute;top:{{ $topPx }}px;left:64px;right:12px;height:{{ $htPx }}px;
@@ -193,8 +230,8 @@
 
     {{-- Right sidebar --}}
     {{-- Unverified visits scoped to the day currently being viewed --}}
-    @php $unverifiedVisits = $visits->filter(fn($v) => $v->workOrder->confirmation_status !== \App\Models\WorkOrder::CONFIRMATION_CONFIRMED); @endphp
-    <div style="width:270px;flex-shrink:0;display:flex;flex-direction:column;gap:.75rem;height:calc(100vh - 220px);min-height:400px;overflow-y:auto;">
+    @php $unverifiedVisits = $visits->filter(fn($v) => $v->confirmation_status === \App\Models\WorkOrderVisit::CONFIRMATION_PENDING); @endphp
+    <div class="cal-side" style="width:270px;flex-shrink:0;display:flex;flex-direction:column;gap:.75rem;height:calc(100vh - 220px);min-height:400px;overflow-y:auto;">
 
         {{-- Unverified visits --}}
         @if($unverifiedVisits->isNotEmpty())
@@ -223,9 +260,9 @@
                         {{ $uv->scheduled_at->format('D, M j \a\t g:i A') }}
                     </div>
                     <div style="font-size:.7rem;color:#92400e;opacity:.85;margin-top:.1rem;font-style:italic;">
-                        @if($order->confirmation_status === 'pending')
+                        @if($uv->confirmation_status === \App\Models\WorkOrderVisit::CONFIRMATION_PENDING)
                             Awaiting customer reply
-                        @elseif($order->confirmation_status === 'declined')
+                        @elseif($uv->confirmation_status === \App\Models\WorkOrderVisit::CONFIRMATION_DECLINED)
                             Customer declined — follow up needed
                         @else
                             Confirmation not collected
@@ -291,6 +328,143 @@
 </div>
 
 {{-- ══════════════════════════════════════════
+     TWO-DAY VIEW
+══════════════════════════════════════════ --}}
+@elseif($view === 'two-day')
+
+<div class="cal-twoday-grid" style="display:flex;gap:1rem;align-items:flex-start;">
+
+    @foreach($days as $day)
+    @php
+        $dayDate   = $day['date'];
+        $dayVisits = $day['visits'];
+        $isToday   = $dayDate->isToday();
+    @endphp
+    <div style="flex:1;min-width:0;background:#fff;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.07);overflow:hidden;display:flex;flex-direction:column;">
+
+        {{-- Per-day header --}}
+        <div class="cal-twoday-dayhead" style="padding:.55rem .85rem;border-bottom:1px solid #e5e7eb;background:{{ $isToday ? '#eff6ff' : '#f9fafb' }};display:flex;align-items:baseline;gap:.5rem;flex-shrink:0;">
+            <div style="font-size:.78rem;font-weight:700;color:{{ $isToday ? 'var(--accent)' : '#6b7280' }};text-transform:uppercase;letter-spacing:.05em;line-height:1;">{{ $dayDate->format('D') }}</div>
+            <div style="font-size:.92rem;font-weight:700;color:{{ $isToday ? 'var(--accent)' : '#1e293b' }};line-height:1;">{{ $dayDate->format('M j') }}</div>
+            @if($isToday)<span style="font-size:.65rem;font-weight:700;background:var(--accent);color:#fff;padding:.08rem .45rem;border-radius:4px;letter-spacing:.03em;text-transform:uppercase;">Today</span>@endif
+            <a href="{{ $dayUrl($dayDate) }}" class="cal-twoday-dayview-link" style="margin-left:auto;font-size:.7rem;color:#9ca3af;text-decoration:none;">Day view →</a>
+        </div>
+
+        {{-- Timeline --}}
+        <div class="cal-twoday-tl" data-tl style="overflow-y:auto;height:calc(100vh - 260px);min-height:400px;">
+            <div style="position:relative;height:{{ $totalHeight }}px;">
+
+                {{-- Hour grid lines & labels --}}
+                @for($h = $timelineStart; $h <= $timelineEnd; $h++)
+                @php $top = ($h - $timelineStart) * $pxPerHour; @endphp
+                <div style="position:absolute;top:{{ $top }}px;left:0;right:0;border-top:1px solid {{ $h === $timelineStart ? 'transparent' : '#e5e7eb' }};display:flex;">
+                    <div style="width:48px;flex-shrink:0;padding:.2rem .4rem 0 .4rem;font-size:.68rem;color:#9ca3af;text-align:right;line-height:1;">
+                        {{ $h === 12 ? '12 PM' : ($h < 12 ? $h.' AM' : ($h - 12).' PM') }}
+                    </div>
+                    <div style="flex:1;border-left:1px solid #e5e7eb;"></div>
+                </div>
+                @endfor
+
+                {{-- Visit blocks --}}
+                @foreach($dayVisits as $visit)
+                @php
+                    $wo     = $visit->workOrder;
+                    $startH = (int) $visit->scheduled_at->format('G');
+                    $startM = (int) $visit->scheduled_at->format('i');
+                    $dur    = $visit->duration_estimate_minutes ?? 60;
+
+                    $topPx  = (($startH - $timelineStart) * 60 + $startM) / 60 * $pxPerHour;
+                    $htPx   = max(40, $dur / 60 * $pxPerHour);
+                    $topPx  = max(0, min($topPx, $totalHeight - 40));
+                    $htPx   = min($htPx, $totalHeight - $topPx);
+
+                    $bg            = $urgencyBg($wo->urgency);
+                    $color         = $urgencyColor($wo->urgency);
+                    $isUnverified  = $visit->confirmation_status === \App\Models\WorkOrderVisit::CONFIRMATION_PENDING;
+                @endphp
+                <a href="{{ route('employee.work-orders.visits.show', [$wo, $visit]) }}"
+                   style="position:absolute;top:{{ $topPx }}px;left:56px;right:8px;height:{{ $htPx }}px;
+                            background:{{ $bg }};border-left:3px solid {{ $color }};border-radius:0 6px 6px 0;
+                            padding:.32rem .55rem .32rem {{ $isUnverified ? '1.45rem' : '.55rem' }};overflow:hidden;cursor:pointer;z-index:1;box-shadow:0 1px 3px rgba(0,0,0,.08);text-decoration:none;display:block;"
+                   title="{{ $visit->scheduled_at->format('g:i A') }} — {{ $wo->woLabel() }} {{ $wo->customer->name }}{{ $isUnverified ? ' ⚠ Visit not verified' : '' }}">
+                    @if($isUnverified)
+                    <div style="position:absolute;left:0;top:0;bottom:0;width:18px;background:#f59e0b;display:flex;align-items:center;justify-content:center;z-index:2;">
+                        <span style="font-size:.72rem;font-weight:900;color:#fff;line-height:1;">!</span>
+                    </div>
+                    @endif
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:.25rem;min-width:0;">
+                        <div style="font-size:.74rem;font-weight:700;color:{{ $color }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0;">
+                            {{ $visit->scheduled_at->format('g:i A') }}
+                            @if($visit->duration_estimate_minutes)
+                                – {{ $visit->scheduled_at->copy()->addMinutes($visit->duration_estimate_minutes)->format('g:i A') }}
+                            @endif
+                        </div>
+                        @php $urgencyBadgeBg = match($wo->urgency) { 'emergency' => '#dc2626', 'urgent' => '#d97706', default => '#2E86C1' }; @endphp
+                        <span style="font-size:.55rem;font-weight:700;padding:.05rem .3rem;border-radius:999px;background:{{ $urgencyBadgeBg }};color:#fff;white-space:nowrap;line-height:1.4;flex-shrink:0;">{{ ucfirst($wo->urgency) }}</span>
+                    </div>
+                    <div style="font-size:.78rem;font-weight:600;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:.08rem;">
+                        {{ $wo->woLabel() }} &mdash; {{ $wo->customer->name }}
+                    </div>
+                    @if($wo->site_street)
+                    <div style="font-size:.7rem;color:#555;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:.03rem;">
+                        {{ $wo->site_street }}
+                    </div>
+                    @endif
+                    @if($htPx >= 80 && $wo->serviceTypes->count())
+                    <div style="font-size:.68rem;color:#777;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:.08rem;">
+                        {{ $wo->serviceTypes->pluck('name')->join(', ') }}
+                    </div>
+                    @endif
+                    @php $visitTechUsers = $visit->techs->map(fn($t) => $t->user)->filter(); @endphp
+                    @if($visitTechUsers->count() > 0 && $htPx >= 56)
+                    <div style="display:flex;gap:.12rem;margin-top:.15rem;flex-wrap:wrap;align-items:center;">
+                        @foreach($visitTechUsers as $tech)
+                        @php $ti=collect(explode(' ',$tech->name))->map(fn($w)=>strtoupper($w[0]??''))->take(2)->join(''); @endphp
+                        <span style="display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border-radius:50%;background:{{ $color }};opacity:.75;color:#fff;font-size:.46rem;font-weight:700;flex-shrink:0;" title="{{ $tech->name }}">{{ $ti }}</span>
+                        @endforeach
+                    </div>
+                    @endif
+                </a>
+                @endforeach
+
+                @if($dayVisits->isEmpty())
+                <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding-left:48px;">
+                    <p style="color:#bbb;font-size:.85rem;">No visits scheduled.</p>
+                </div>
+                @endif
+
+            </div>
+        </div>
+    </div>
+    @endforeach
+
+</div>
+
+{{-- Equipment needed across both days --}}
+@if($visits->isNotEmpty())
+<div style="margin-top:1.25rem;background:#fff;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.07);padding:1rem 1.25rem;">
+    <p style="font-size:.78rem;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.75rem;">Equipment Needed</p>
+    <div style="display:flex;flex-direction:column;gap:.65rem;">
+        @foreach($visits as $visit)
+        @php $wo = $visit->workOrder; @endphp
+        <div style="padding:.55rem .75rem;border-left:3px solid var(--accent);border-radius:0 5px 5px 0;background:#f8f9fa;">
+            <div style="font-size:.85rem;font-weight:700;color:var(--primary);">
+                {{ $wo->woLabel() }} &mdash; {{ $wo->customer->name }}
+                <span style="font-weight:400;color:var(--accent);font-size:.8rem;margin-left:.35rem;">{{ $visit->scheduled_at->format('D, g:i A') }}</span>
+                @if($wo->site_street) <span style="font-weight:400;color:#6b7280;font-size:.8rem;">· {{ $wo->site_street }}</span>@endif
+            </div>
+            @if(trim($wo->equipment_details ?? '') !== '')
+            <div style="font-size:.85rem;color:#374151;line-height:1.55;margin-top:.35rem;padding-left:.75rem;border-left:2px solid #d1d5db;white-space:pre-wrap;word-break:break-word;">{{ $wo->equipment_details }}</div>
+            @else
+            <div style="font-size:.82rem;color:#9ca3af;font-style:italic;margin-top:.35rem;padding-left:.75rem;border-left:2px solid #e5e7eb;">No Equipment documented.</div>
+            @endif
+        </div>
+        @endforeach
+    </div>
+</div>
+@endif
+
+{{-- ══════════════════════════════════════════
      WEEK VIEW
 ══════════════════════════════════════════ --}}
 @else
@@ -328,7 +502,7 @@
                 $wo           = $visit->workOrder;
                 $color        = $urgencyColor($wo->urgency);
                 $bg           = $urgencyBg($wo->urgency);
-                $wkUnverified = $wo->confirmation_status !== \App\Models\WorkOrder::CONFIRMATION_CONFIRMED;
+                $wkUnverified = $visit->confirmation_status === \App\Models\WorkOrderVisit::CONFIRMATION_PENDING;
             @endphp
             <a href="{{ route('employee.work-orders.visits.show', [$wo, $visit]) }}"
                style="display:block;background:{{ $bg }};border-left:3px solid {{ $color }};border-radius:0 5px 5px 0;
@@ -408,10 +582,11 @@
 
 <script>
 (function () {
-    var tl = document.getElementById('cal-timeline');
-    if (!tl) return;
-    // Scroll to 8 AM on load (2 hours past the 6 AM start, 80px/hour)
-    tl.scrollTop = 2 * {{ $pxPerHour }};
+    // Scroll all timelines to 8 AM on load (2 hours past the 6 AM start)
+    var offset = 2 * {{ $pxPerHour }};
+    var dayTl  = document.getElementById('cal-timeline');
+    if (dayTl) dayTl.scrollTop = offset;
+    document.querySelectorAll('[data-tl]').forEach(function (el) { el.scrollTop = offset; });
 })();
 </script>
 

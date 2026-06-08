@@ -201,7 +201,7 @@
                     </thead>
                     <tbody>
                         @foreach($recentWorkOrders as $wo)
-                        <tr data-href="{{ route('admin.work-orders.show', $wo) }}"
+                        <tr data-href="{{ route('admin.work-orders.show', [$wo, 'from' => 'company', 'from_id' => $company->id]) }}"
                             style="border-bottom:1px solid #f3f4f6;cursor:pointer;">
                             <td style="padding:.65rem 1rem;font-size:.875rem;font-weight:600;color:var(--primary);white-space:nowrap;">{{ $wo->woLabel() }}</td>
                             <td style="padding:.65rem 1rem;font-size:.82rem;color:#374151;white-space:nowrap;">{{ $wo->customer->name ?? '—' }}</td>

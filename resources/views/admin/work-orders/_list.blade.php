@@ -54,7 +54,7 @@ $sortIcon = fn($col) => $sort === $col
     </thead>
     <tbody>
         @forelse($orders as $order)
-        <tr data-href="{{ route('admin.work-orders.show', $order) }}">
+        <tr data-href="{{ route('admin.work-orders.show', [$order, 'from' => 'work-orders']) }}">
 
             {{-- WO ID + Status + Unread Note --}}
             <td style="white-space:nowrap;vertical-align:top;">

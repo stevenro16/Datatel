@@ -235,7 +235,7 @@
                     $bgClr  = $isDone ? '#f1f5f9' : $clr.'1a';
                     $bdClr  = $isDone ? '#94a3b8' : $clr;
                 @endphp
-                <a href="{{ route('admin.work-orders.show', $wo) }}"
+                <a href="{{ route('admin.work-orders.show', [$wo, 'from' => 'calendar']) }}"
                    class="wo-card wk-tl-event" data-techs="{{ $tids }}"
                    style="top:{{ $top }}px;height:{{ $ht }}px;border-left-color:{{ $bdClr }};background:{{ $bgClr }};{{ $isDone ? 'opacity:.72;' : '' }}">
                     <div class="wk-evt-time" style="color:{{ $bdClr }};">{{ $visit->scheduled_at->format('g:i A') }}</div>
@@ -291,7 +291,7 @@
                 $bgClr  = $isDone ? '#f1f5f9' : $clr.'16';
                 $bdClr  = $isDone ? '#94a3b8' : $clr;
             @endphp
-            <a href="{{ route('admin.work-orders.show', $wo) }}"
+            <a href="{{ route('admin.work-orders.show', [$wo, 'from' => 'calendar']) }}"
                class="wo-card tl-event" data-techs="{{ $tids }}"
                style="top:{{ $top }}px;height:{{ $ht }}px;border-left-color:{{ $bdClr }};background:{{ $bgClr }};{{ $isDone ? 'opacity:.72;' : '' }}">
                 <div style="font-size:.7rem;font-weight:700;color:{{ $bdClr }};">{{ $visit->scheduled_at->format('g:i A') }}</div>
@@ -353,7 +353,7 @@
                 $bgClr  = $isDone ? '#f1f5f9' : $clr.'13';
                 $bdClr  = $isDone ? '#94a3b8' : $clr;
             @endphp
-            <a href="{{ route('admin.work-orders.show', $wo) }}"
+            <a href="{{ route('admin.work-orders.show', [$wo, 'from' => 'calendar']) }}"
                class="wo-card mo-pill" data-techs="{{ $tids }}"
                style="border-left-color:{{ $bdClr }};background:{{ $bgClr }};color:{{ $isDone ? '#6b7280' : '#111' }};{{ $isDone ? 'opacity:.8;' : '' }}">
                 {{ $visit->scheduled_at->format('g:i') }} {{ $wo->customer->name }}{{ $isDone ? ' ✓' : '' }}

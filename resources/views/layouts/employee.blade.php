@@ -17,9 +17,10 @@
     </a>
     <nav>
         <a href="{{ route('employee.calendar') }}" class="{{ request()->routeIs('employee.calendar') ? 'active' : '' }}">Calendar</a>
-        <a href="#">My Work Orders</a>
-        <a href="#">Clock In/Out</a>
-        <a href="#">Time Card</a>
+        {{-- TODO: re-enable once these sections are built --}}
+        {{-- <a href="#">My Work Orders</a> --}}
+        {{-- <a href="#">Clock In/Out</a> --}}
+        {{-- <a href="#">Time Card</a> --}}
     </nav>
     @php
         $__u = auth()->user();

@@ -226,7 +226,7 @@ class WorkOrderController extends Controller
         abort_if($visit->work_order_id !== $workOrder->id, 403);
         abort_if(!$this->employeeCanAccessVisit($workOrder, $visit), 403);
 
-        $workOrder->load(['customer', 'serviceTypes', 'notes.author', 'visits.techs.user', 'visits.signature']);
+        $workOrder->load(['customer', 'serviceTypes', 'notes.author', 'visits.techs.user', 'visits.signature', 'attachments']);
         $visit->load(['techs.user', 'signature.collectedBy']);
 
         $timeEntry = TimeEntry::where('visit_id', $visit->id)
@@ -278,10 +278,6 @@ class WorkOrderController extends Controller
         abort_if($visit->work_order_id !== $workOrder->id, 403);
         abort_if(!$this->employeeCanAccessVisit($workOrder, $visit), 403);
 
-        if ($visit->signature) {
-            return back()->with('info', 'This visit has already been signed.');
-        }
-
         $data = $request->validate([
             'signer_name'    => 'required|string|max:255',
             'signature_data' => 'required|string',
@@ -301,6 +297,37 @@ class WorkOrderController extends Controller
 
         $filename = 'wo-' . $workOrder->id . '-v' . $visit->id . '-' . time() . '.png';
         file_put_contents($sigDir . '/' . $filename, $imageBinary);
+
+        // ── Re-sign: overwrite the existing signature, leaving confirmation & WO status untouched ──
+        if ($visit->signature) {
+            $existing  = $visit->signature;
+            $oldFile   = $sigDir . '/' . $existing->signature_path;
+            $oldSigner = $existing->signer_name;
+
+            $existing->update([
+                'signer_name'    => $data['signer_name'],
+                'signature_path' => $filename,
+                'collected_by'   => auth()->id(),
+                'ip_address'     => $request->ip(),
+                'signed_at'      => now(),
+            ]);
+
+            if (is_file($oldFile)) {
+                @unlink($oldFile);
+            }
+
+            WorkOrderHistory::create([
+                'work_order_id' => $workOrder->id,
+                'changed_by'    => auth()->id(),
+                'field_name'    => 'signature',
+                'old_value'     => $oldSigner,
+                'new_value'     => $data['signer_name'],
+                'comment'       => "Visit signature on {$visit->scheduled_at->format('M j, Y')} re-collected, overwriting the previous signature from \"{$oldSigner}\".",
+                'changed_at'    => now(),
+            ]);
+
+            return back()->with('success', 'Signature updated.');
+        }
 
         WorkOrderVisitSignature::create([
             'visit_id'       => $visit->id,

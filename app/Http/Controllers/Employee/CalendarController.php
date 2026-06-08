@@ -62,6 +62,30 @@ class CalendarController extends Controller
             return view('employee.calendar', compact('view', 'focusDate', 'weekStart', 'weekEnd', 'days', 'todayVisits', 'orders'));
         }
 
+        if ($view === 'two-day') {
+            $rangeStart = $focusDate->copy()->startOfDay();
+            $rangeEnd   = $focusDate->copy()->addDay()->endOfDay();
+
+            $visits = $baseVisitQuery()
+                ->whereBetween('scheduled_at', [$rangeStart, $rangeEnd])
+                ->orderBy('scheduled_at')
+                ->get();
+
+            $days = collect([0, 1])->map(fn ($i) => [
+                'date'   => $focusDate->copy()->addDays($i),
+                'visits' => $visits->filter(
+                    fn ($v) => $v->scheduled_at->isSameDay($focusDate->copy()->addDays($i))
+                )->values(),
+            ]);
+
+            $orders = WorkOrder::whereIn('id', $assignedIds)
+                ->where('status', '!=', WorkOrder::STATUS_CANCELED)
+                ->with(['customer.companies', 'serviceTypes'])
+                ->get();
+
+            return view('employee.calendar', compact('view', 'focusDate', 'visits', 'days', 'orders'));
+        }
+
         // Day view
         $visits = $baseVisitQuery()
             ->whereDate('scheduled_at', $focusDate)

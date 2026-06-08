@@ -39,7 +39,13 @@
     </div>
 </div>
 
-<div style="display:grid;grid-template-columns:2fr 1fr;gap:1.5rem;align-items:start;">
+<style>
+@media (max-width: 768px) {
+    .wo-grid { grid-template-columns: 1fr !important; }
+}
+</style>
+
+<div class="wo-grid" style="display:grid;grid-template-columns:2fr 1fr;gap:1.5rem;align-items:start;">
 
     {{-- ── Left column ── --}}
     <div>
@@ -328,7 +334,7 @@
     {{-- ── Right sidebar ── --}}
     <div>
 
-        {{-- Site Time --}}
+        {{-- Site Time — arrival & departure with manual override --}}
         <div style="background:#fff;border:1px solid #d0d5dd;border-radius:8px;padding:1.25rem 1.5rem;margin-bottom:1rem;box-shadow:0 1px 4px rgba(0,0,0,.07);">
             <div style="font-size:.68rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.08em;margin-bottom:.85rem;">⏱ Site Time</div>
 

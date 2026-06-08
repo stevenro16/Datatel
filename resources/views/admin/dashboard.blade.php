@@ -255,7 +255,7 @@
                     'emergency' => '#ef4444', 'urgent' => '#f59e0b', default => '#93c5fd',
                 };
             @endphp
-            <a href="{{ route('admin.work-orders.show', $wo) }}"
+            <a href="{{ route('admin.work-orders.show', [$wo, 'from' => 'dashboard']) }}"
                class="cal-event"
                data-orig-ht="{{ $ht }}"
                data-techs="{{ json_encode($chipTechIds) }}"
@@ -399,7 +399,7 @@
                     'emergency' => '#ef4444', 'urgent' => '#f59e0b', default => '#93c5fd',
                 };
             @endphp
-            <a href="{{ route('admin.work-orders.show', $wo) }}"
+            <a href="{{ route('admin.work-orders.show', [$wo, 'from' => 'dashboard']) }}"
                class="cal-event"
                data-orig-ht="{{ $ht }}"
                data-techs="{{ json_encode($chipTechIds) }}"
@@ -717,7 +717,7 @@ $sortIcon = fn($col) => $sort === $col
                 : $wo->assignments->pluck('user_id')->toArray();
         @endphp
         <tr class="week-schedule-row"
-            data-href="{{ route('admin.work-orders.show', $wo) }}"
+            data-href="{{ route('admin.work-orders.show', [$wo, 'from' => 'dashboard']) }}"
             data-techs="{{ json_encode($listTechIds) }}">
 
             {{-- WO # + Status + badges --}}

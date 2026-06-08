@@ -133,6 +133,17 @@
     .btn-danger:hover { background: #a93226; color: #fff; }
     .btn-sm { padding: .3rem .75rem; font-size: .82rem; }
 
+    /* ── Responsive / mobile (portal + employee top-nav layouts) ──── */
+    @media (max-width: 768px) {
+        .portal-header { padding: 0 .9rem; height: 60px; gap: .65rem; }
+        .portal-header img { height: 50px; }
+        .portal-header nav { margin-left: 0; gap: 0; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+        .portal-header nav::-webkit-scrollbar { display: none; }
+        .portal-header nav a { padding: 0 .7rem; font-size: .85rem; white-space: nowrap; }
+        .portal-content { padding: 1rem .75rem; min-height: calc(100vh - 60px); }
+        .page-title { font-size: 1.25rem; margin-bottom: 1rem; }
+    }
+
     /* ════════════════════════════════════════════════════════════════
        Dark mode — toggled via html.dark class
        Persisted in localStorage('adminDarkMode')

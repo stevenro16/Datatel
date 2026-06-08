@@ -7,7 +7,7 @@ use App\Http\Controllers\Admin\WorkOrderController as AdminWorkOrders;
 use App\Http\Controllers\Admin\UserController as AdminUsers;
 use App\Http\Controllers\Admin\InvoiceController as AdminInvoices;
 use App\Http\Controllers\Admin\CalendarController as AdminCalendar;
-use App\Http\Controllers\Admin\ReportController as AdminReports;
+use App\Http\Controllers\Admin\MyAnalyticsController as AdminMyAnalytics;
 use App\Http\Controllers\Admin\SettingController as AdminSettings;
 use App\Http\Controllers\Admin\ServiceTypeController as AdminServices;
 use App\Http\Controllers\Admin\PendingCustomerController as AdminPendingCustomers;
@@ -188,7 +188,7 @@ Route::middleware(['auth', 'verified', 'role:admin'])
         Route::post('invoices/{invoice}/status', [AdminInvoices::class, 'updateStatus'])->name('invoices.status');
         Route::get('invoices/{invoice}/print', [AdminInvoices::class, 'printView'])->name('invoices.print');
         Route::get('/calendar', [AdminCalendar::class, 'index'])->name('calendar');
-        Route::get('/reports', [AdminReports::class, 'index'])->name('reports');
+        Route::get('/my-analytics', [AdminMyAnalytics::class, 'index'])->name('my-analytics');
         Route::get('inquiries/check-email', [AdminInquiries::class, 'checkEmail'])->name('inquiries.check-email');
         Route::get('inquiries', [AdminInquiries::class, 'index'])->name('inquiries.index');
         Route::get('inquiries/{inquiry}', [AdminInquiries::class, 'show'])->name('inquiries.show');

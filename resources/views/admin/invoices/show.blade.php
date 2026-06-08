@@ -829,7 +829,7 @@ toggleOverrideCancelReason(document.getElementById('override-status')?.value ?? 
        style="padding:.35rem .8rem;border:1px solid #d1d5db;border-radius:6px;background:#f8f9fa;color:#374151;font-size:.83rem;text-decoration:none;display:inline-flex;align-items:center;gap:.35rem;white-space:nowrap;">
         🖨 Print
     </a>
-    <a href="{{ route('admin.work-orders.show', $invoice->work_order_id) }}"
+    <a href="{{ route('admin.work-orders.show', [$invoice->work_order_id, 'from' => 'invoice', 'from_id' => $invoice->id]) }}"
        style="padding:.38rem .9rem;border-radius:6px;background:var(--primary);color:#fff;font-size:.83rem;font-weight:700;text-decoration:none;display:inline-flex;align-items:center;gap:.4rem;white-space:nowrap;box-shadow:0 2px 6px rgba(26,60,94,.25);letter-spacing:.01em;">
         <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></svg>
         {{ $invoice->workOrder?->woLabel() ?? 'Work Order' }}
