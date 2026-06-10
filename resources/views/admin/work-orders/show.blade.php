@@ -29,8 +29,6 @@
 }
 </style>
 @php
-    $urgencyBg    = ['emergency'=>'#fee2e2','urgent'=>'#fef3c7','routine'=>'#f3f4f6'][$workOrder->urgency] ?? '#f3f4f6';
-    $urgencyColor = ['emergency'=>'#991b1b','urgent'=>'#92400e','routine'=>'#374151'][$workOrder->urgency] ?? '#374151';
     $photos      = $workOrder->attachments->filter(fn($a) => str_starts_with($a->mime_type, 'image/'));
     $docs        = $workOrder->attachments->filter(fn($a) => !str_starts_with($a->mime_type, 'image/'));
     $previewable = ['application/pdf', 'text/plain'];
@@ -700,8 +698,6 @@
                     </div>
 
                     @php
-                        $urgSummaryBg    = ['emergency'=>'#fee2e2','urgent'=>'#fef3c7','routine'=>'#f3f4f6'][$workOrder->urgency] ?? '#f3f4f6';
-                        $urgSummaryColor = ['emergency'=>'#991b1b','urgent'=>'#92400e','routine'=>'#374151'][$workOrder->urgency] ?? '#374151';
                         $availDayLabels  = ['monday'=>'Mon','tuesday'=>'Tue','wednesday'=>'Wed','thursday'=>'Thu','friday'=>'Fri','saturday'=>'Sat'];
                         $availDays       = $workOrder->preferred_availability ? array_keys($workOrder->preferred_availability) : [];
                         // Compute next 3 upcoming dates that fall on a preferred day
@@ -1662,8 +1658,6 @@ function expandDetails() {
     const body    = document.getElementById('details-body');
     const summary = document.getElementById('details-collapsed-summary');
     if (!body || body.dataset.collapsed !== '1') return;
-    document.getElementById('wo-details-card').style.minHeight = '';
-    document.getElementById('customer-card').style.minHeight   = '';
     body.style.gridTemplateRows = '1fr';
     body.style.opacity          = '1';
     body.dataset.collapsed      = '0';
@@ -1678,7 +1672,6 @@ function collapseDetails() {
     body.style.opacity          = '0';
     body.dataset.collapsed      = '1';
     if (summary) summary.style.display = 'block';
-    requestAnimationFrame(syncCardHeights);
 }
 
 function toggleRelatedOrders(btn) {
@@ -1693,27 +1686,6 @@ function toggleRelatedOrders(btn) {
         chevron.style.transform = 'rotate(180deg)';
     }
 }
-
-function syncCardHeights() {
-    const woCard  = document.getElementById('wo-details-card');
-    const cusCard = document.getElementById('customer-card');
-    const body    = document.getElementById('details-body');
-    if (!woCard || !cusCard || !body) return;
-    if (body.dataset.collapsed === '1') {
-        woCard.style.minHeight  = '';
-        cusCard.style.minHeight = '';
-        const target = Math.max(
-            cusCard.getBoundingClientRect().height,
-            woCard.getBoundingClientRect().height
-        );
-        woCard.style.minHeight  = target + 'px';
-        cusCard.style.minHeight = target + 'px';
-    } else {
-        woCard.style.minHeight  = '';
-        cusCard.style.minHeight = '';
-    }
-}
-
 
 function setEditBtnActive(active) {
     const btn = document.getElementById('edit-toggle-btn');
@@ -1734,15 +1706,24 @@ function setEditBtnActive(active) {
 function toggleEdit() {
     const display = document.getElementById('details-display');
     const form    = document.getElementById('details-edit-form');
+    const body    = document.getElementById('details-body');
     const editing = form.style.display === 'none';
     if (editing) {
+        // Record the card's state before edit auto-expands it, so Cancel can
+        // restore it to exactly that size (collapsed stays collapsed, an
+        // already-expanded card stays expanded).
+        form.dataset.wasCollapsed = body ? body.dataset.collapsed : '1';
         expandDetails();
         display.style.display = 'none';
         form.style.display    = '';
     } else {
+        // Leaving edit mode restores the pre-edit size: only shrink back if it
+        // was collapsed before editing.
         display.style.display = '';
         form.style.display    = 'none';
-        collapseDetails();
+        if (form.dataset.wasCollapsed !== '0') {
+            collapseDetails();
+        }
     }
     setEditBtnActive(editing);
 }
@@ -1788,6 +1769,9 @@ document.addEventListener('DOMContentLoaded', function() {
     if (form) {
         document.getElementById('details-display').style.display = 'none';
         form.style.display = '';
+        // Page opened in edit mode (validation error or post-create) — the
+        // pre-edit default is collapsed, so Cancel should shrink back.
+        form.dataset.wasCollapsed = '1';
         setEditBtnActive(true);
         expandDetails();
     }
@@ -3208,9 +3192,6 @@ function loadTimeline(date) {
             container.innerHTML = '<p style="color:#e55;font-size:.82rem;">Could not load tech schedule.</p>';
         });
 }
-
-// Page loads with WO details collapsed — sync heights on first paint
-requestAnimationFrame(syncCardHeights);
 
 </script>
 

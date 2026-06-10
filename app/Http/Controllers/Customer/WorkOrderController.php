@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Customer;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Customer\StoreWorkOrderRequest;
+use App\Http\Requests\Customer\UpdateWorkOrderRequest;
 use App\Models\CustomerAddress;
 use App\Models\Invoice;
 use App\Models\InvoiceHistory;
@@ -116,26 +118,9 @@ class WorkOrderController extends Controller
         return view('customer.work-orders.create', compact('serviceTypes', 'defaultDate', 'sites', 'defaultSite', 'user', 'customerAvailDefaults', 'siteAccountAddress', 'sitePriorAddresses'));
     }
 
-    public function store(Request $request)
+    public function store(StoreWorkOrderRequest $request)
     {
-        $data = $request->validate([
-            'description'              => 'required|string|min:10',
-            'equipment_details'        => 'nullable|string',
-            'urgency'                  => 'required|in:routine,urgent,emergency',
-            'site_street'              => 'nullable|string|max:255',
-            'site_contact_name'        => 'nullable|string|max:255',
-            'site_contact_phone'       => 'nullable|string|max:30',
-            'preferred_date'           => 'nullable|date|after_or_equal:today',
-            'preferred_availability'   => 'nullable|string',
-            'service_ids'              => 'nullable|array',
-            'service_ids.*'            => 'exists:service_types,id',
-            'save_phone_as_default'    => 'nullable|boolean',
-            'update_customer_defaults' => 'nullable|boolean',
-            'photos'                   => 'nullable|array|max:3',
-            'photos.*'                 => 'file|mimes:jpg,jpeg,png,gif,webp|max:10240',
-            'documents'                => 'nullable|array|max:3',
-            'documents.*'              => 'file|mimes:pdf,doc,docx,xls,xlsx,txt|max:20480',
-        ]);
+        $data = $request->validated();
 
         $availability = $this->parseAvailability($data['preferred_availability'] ?? null);
 
@@ -226,24 +211,9 @@ class WorkOrderController extends Controller
         return view('customer.work-orders.show', compact('workOrder', 'serviceTypes', 'siteAccountAddress', 'sitePriorAddresses'));
     }
 
-    public function update(Request $request, WorkOrder $workOrder)
+    public function update(UpdateWorkOrderRequest $request, WorkOrder $workOrder)
     {
-        abort_if($workOrder->customer_id !== auth()->id(), 403);
-        abort_if(!in_array($workOrder->status, [WorkOrder::STATUS_NEW, WorkOrder::STATUS_TRIAGED]), 403);
-
-        $data = $request->validate([
-            'description'              => 'required|string|min:10',
-            'equipment_details'        => 'nullable|string',
-            'urgency'                  => 'required|in:routine,urgent,emergency',
-            'site_street'              => 'nullable|string|max:255',
-            'site_contact_name'        => 'nullable|string|max:255',
-            'site_contact_phone'       => 'nullable|string|max:30',
-            'preferred_date'           => 'nullable|date|after_or_equal:today',
-            'preferred_availability'   => 'nullable|string',
-            'service_ids'              => 'nullable|array',
-            'service_ids.*'            => 'exists:service_types,id',
-            'update_customer_defaults' => 'nullable|boolean',
-        ]);
+        $data = $request->validated();
 
         $scalarFields = ['description', 'equipment_details', 'urgency', 'site_street', 'site_contact_name', 'site_contact_phone'];
 

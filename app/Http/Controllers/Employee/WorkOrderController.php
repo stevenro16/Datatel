@@ -176,7 +176,7 @@ class WorkOrderController extends Controller
 
         // Decode and save the signature image
         $imageData   = preg_replace('/^data:image\/\w+;base64,/', '', $data['signature_data']);
-        $imageBinary = base64_decode($imageData);
+        $imageBinary = base64_decode($imageData, true);
 
         if (!$imageBinary) {
             return back()->withErrors(['signature_data' => 'Invalid signature. Please sign again.']);
@@ -200,7 +200,8 @@ class WorkOrderController extends Controller
             'signed_at'      => now(),
         ]);
 
-        // Update status
+        // Back-fill a Scheduled step if this order was never scheduled, then advance.
+        $workOrder->backfillScheduledStep(auth()->id());
         $oldStatus = $workOrder->status;
         $workOrder->update(['status' => WorkOrder::STATUS_SERVICES_PERFORMED]);
 
@@ -284,7 +285,7 @@ class WorkOrderController extends Controller
         ]);
 
         $imageData   = preg_replace('/^data:image\/\w+;base64,/', '', $data['signature_data']);
-        $imageBinary = base64_decode($imageData);
+        $imageBinary = base64_decode($imageData, true);
 
         if (!$imageBinary) {
             return back()->withErrors(['signature_data' => 'Invalid signature. Please sign again.']);
@@ -363,6 +364,7 @@ class WorkOrderController extends Controller
             WorkOrder::STATUS_CANCELED,
         ];
         if (!in_array($workOrder->status, $pastStatuses)) {
+            $workOrder->backfillScheduledStep(auth()->id());
             $oldStatus = $workOrder->status;
             $workOrder->update(['status' => WorkOrder::STATUS_SERVICES_PERFORMED]);
             WorkOrderHistory::create([

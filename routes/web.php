@@ -1,9 +1,12 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\AttachmentController;
 
 use App\Http\Controllers\Admin\DashboardController as AdminDashboard;
 use App\Http\Controllers\Admin\WorkOrderController as AdminWorkOrders;
+use App\Http\Controllers\Admin\WorkOrderScheduleController as AdminWorkOrderSchedule;
+use App\Http\Controllers\Admin\WorkOrderAssignmentController as AdminWorkOrderAssignment;
 use App\Http\Controllers\Admin\UserController as AdminUsers;
 use App\Http\Controllers\Admin\InvoiceController as AdminInvoices;
 use App\Http\Controllers\Admin\CalendarController as AdminCalendar;
@@ -15,13 +18,13 @@ use App\Http\Controllers\Admin\CompanyController as AdminCompanies;
 use App\Http\Controllers\Admin\CustomerAnalyticsController as AdminAnalytics;
 use App\Http\Controllers\Admin\CompanyAnalyticsController as AdminCompanyAnalytics;
 use App\Http\Controllers\Admin\InquiryController as AdminInquiries;
+use App\Http\Controllers\Admin\ReportController as AdminReports;
 use App\Http\Controllers\Admin\DeviceCatalogController as AdminDeviceCatalog;
 use App\Http\Controllers\Customer\DashboardController as CustomerDashboard;
 use App\Http\Controllers\Customer\WorkOrderController as CustomerWorkOrders;
 use App\Http\Controllers\Customer\InvoiceController as CustomerInvoices;
 use App\Http\Controllers\Customer\SiteController as CustomerSites;
 use App\Http\Controllers\Customer\CompanyController as CustomerCompany;
-use App\Models\WorkOrderAttachment;
 use App\Http\Controllers\Employee\DashboardController as EmployeeDashboard;
 use App\Http\Controllers\Employee\CalendarController as EmployeeCalendar;
 use App\Http\Controllers\Employee\WorkOrderController as EmployeeWorkOrders;
@@ -51,27 +54,10 @@ Route::get('/logo', function () {
 // ── Device catalog data (for equipment autocomplete — any authenticated user) ─
 Route::middleware('auth')->get('/device-catalog/data', [AdminDeviceCatalog::class, 'data'])->name('device-catalog.data');
 
-// ── Attachment routes (auth required) ────────────────────────────────────────
+// ── Attachment routes (auth required; access controlled in AttachmentController) ─
 Route::middleware('auth')->group(function () {
-    // Force-download
-    Route::get('/attachments/{attachment}', function (WorkOrderAttachment $attachment) {
-        $workOrder = $attachment->workOrder;
-        $user = auth()->user();
-        abort_if($user->role === 'customer' && $workOrder->customer_id !== $user->id, 403);
-        $path = storage_path('app/uploads/work-orders/' . $workOrder->id . '/' . $attachment->stored_name);
-        abort_if(!file_exists($path), 404);
-        return response()->download($path, $attachment->original_name);
-    })->name('attachments.download');
-
-    // Serve inline (for <img src="..."> thumbnails / lightbox)
-    Route::get('/attachments/{attachment}/view', function (WorkOrderAttachment $attachment) {
-        $workOrder = $attachment->workOrder;
-        $user = auth()->user();
-        abort_if($user->role === 'customer' && $workOrder->customer_id !== $user->id, 403);
-        $path = storage_path('app/uploads/work-orders/' . $workOrder->id . '/' . $attachment->stored_name);
-        abort_if(!file_exists($path), 404);
-        return response()->file($path, ['Content-Type' => $attachment->mime_type]);
-    })->name('attachments.view');
+    Route::get('/attachments/{attachment}', [AttachmentController::class, 'download'])->name('attachments.download');
+    Route::get('/attachments/{attachment}/view', [AttachmentController::class, 'view'])->name('attachments.view');
 });
 
 // ── Profile photos ────────────────────────────────────────────────────────────
@@ -167,20 +153,20 @@ Route::middleware(['auth', 'verified', 'role:admin'])
         Route::post('work-orders/{workOrder}/notes',        [AdminWorkOrders::class, 'storeNote'])->name('work-orders.notes.store');
         Route::post('work-orders/{workOrder}/status',       [AdminWorkOrders::class, 'updateStatus'])->name('work-orders.status');
         Route::post('work-orders/{workOrder}/urgency',      [AdminWorkOrders::class, 'updateUrgency'])->name('work-orders.urgency');
-        Route::post('work-orders/{workOrder}/schedule',     [AdminWorkOrders::class, 'updateSchedule'])->name('work-orders.schedule');
-        Route::get('work-orders/{workOrder}/tech-schedule', [AdminWorkOrders::class, 'techSchedule'])->name('work-orders.tech-schedule');
-        Route::get('work-orders/{workOrder}/travel-time',   [AdminWorkOrders::class, 'travelTime'])->name('work-orders.travel-time');
-        Route::post('work-orders/{workOrder}/request-confirmation', [AdminWorkOrders::class, 'requestConfirmation'])->name('work-orders.request-confirmation');
-        Route::post('work-orders/{workOrder}/override-confirmation', [AdminWorkOrders::class, 'overrideConfirmation'])->name('work-orders.override-confirmation');
-        Route::post('work-orders/{workOrder}/assign',       [AdminWorkOrders::class, 'assignEmployee'])->name('work-orders.assign');
-        Route::delete('work-orders/{workOrder}/assign/{user}', [AdminWorkOrders::class, 'unassignEmployee'])->name('work-orders.unassign');
+        Route::post('work-orders/{workOrder}/schedule',     [AdminWorkOrderSchedule::class, 'updateSchedule'])->name('work-orders.schedule');
+        Route::get('work-orders/{workOrder}/tech-schedule', [AdminWorkOrderSchedule::class, 'techSchedule'])->name('work-orders.tech-schedule');
+        Route::get('work-orders/{workOrder}/travel-time',   [AdminWorkOrderSchedule::class, 'travelTime'])->name('work-orders.travel-time');
+        Route::post('work-orders/{workOrder}/request-confirmation', [AdminWorkOrderSchedule::class, 'requestConfirmation'])->name('work-orders.request-confirmation');
+        Route::post('work-orders/{workOrder}/override-confirmation', [AdminWorkOrderSchedule::class, 'overrideConfirmation'])->name('work-orders.override-confirmation');
+        Route::post('work-orders/{workOrder}/assign',       [AdminWorkOrderAssignment::class, 'assignEmployee'])->name('work-orders.assign');
+        Route::delete('work-orders/{workOrder}/assign/{user}', [AdminWorkOrderAssignment::class, 'unassignEmployee'])->name('work-orders.unassign');
         Route::post('work-orders/{workOrder}/attachments',  [AdminWorkOrders::class, 'addAttachment'])->name('work-orders.attachments.add');
         Route::delete('work-orders/{workOrder}/attachments/{attachment}', [AdminWorkOrders::class, 'removeAttachment'])->name('work-orders.attachments.remove');
-        Route::post('work-orders/{workOrder}/visits',                          [AdminWorkOrders::class, 'storeVisit'])->name('work-orders.visits.store');
-        Route::patch('work-orders/{workOrder}/visits/{visit}',                 [AdminWorkOrders::class, 'updateVisit'])->name('work-orders.visits.update');
-        Route::delete('work-orders/{workOrder}/visits/{visit}',                [AdminWorkOrders::class, 'destroyVisit'])->name('work-orders.visits.destroy');
-        Route::post('work-orders/{workOrder}/visits/{visit}/request-confirm',  [AdminWorkOrders::class, 'requestVisitConfirmation'])->name('work-orders.visits.request-confirm');
-        Route::post('work-orders/{workOrder}/visits/{visit}/admin-confirm',    [AdminWorkOrders::class, 'adminConfirmVisit'])->name('work-orders.visits.admin-confirm');
+        Route::post('work-orders/{workOrder}/visits',                          [AdminWorkOrderSchedule::class, 'storeVisit'])->name('work-orders.visits.store');
+        Route::patch('work-orders/{workOrder}/visits/{visit}',                 [AdminWorkOrderSchedule::class, 'updateVisit'])->name('work-orders.visits.update');
+        Route::delete('work-orders/{workOrder}/visits/{visit}',                [AdminWorkOrderSchedule::class, 'destroyVisit'])->name('work-orders.visits.destroy');
+        Route::post('work-orders/{workOrder}/visits/{visit}/request-confirm',  [AdminWorkOrderSchedule::class, 'requestVisitConfirmation'])->name('work-orders.visits.request-confirm');
+        Route::post('work-orders/{workOrder}/visits/{visit}/admin-confirm',    [AdminWorkOrderSchedule::class, 'adminConfirmVisit'])->name('work-orders.visits.admin-confirm');
         Route::post('users/quick-company', [AdminUsers::class, 'quickStoreCompany'])->name('users.quick-company');
         Route::post('users/{user}/send-password-reset', [AdminUsers::class, 'sendPasswordReset'])->name('users.send-password-reset');
         Route::resource('users', AdminUsers::class);
@@ -211,6 +197,18 @@ Route::middleware(['auth', 'verified', 'role:admin'])
         Route::get('/analytics/companies', [AdminCompanyAnalytics::class, 'index'])->name('analytics.companies');
         Route::get('/analytics/customers/search', [AdminAnalytics::class, 'search'])->name('analytics.customers.search');
         Route::get('/analytics/customers', [AdminAnalytics::class, 'customer'])->name('analytics.customers');
+
+        // Reports (print-oriented). Index is the catalog; each report opens standalone.
+        Route::get('/reports', [AdminReports::class, 'index'])->name('reports.index');
+        Route::get('/reports/work-order-summary',      [AdminReports::class, 'workOrderSummary'])->name('reports.work-order-summary');
+        Route::get('/reports/work-order-aging',        [AdminReports::class, 'workOrderAging'])->name('reports.work-order-aging');
+        Route::get('/reports/invoice-register',        [AdminReports::class, 'invoiceRegister'])->name('reports.invoice-register');
+        Route::get('/reports/accounts-receivable',     [AdminReports::class, 'accountsReceivable'])->name('reports.accounts-receivable');
+        Route::get('/reports/technician-productivity', [AdminReports::class, 'technicianProductivity'])->name('reports.technician-productivity');
+        Route::get('/reports/technician-time',         [AdminReports::class, 'technicianTime'])->name('reports.technician-time');
+        Route::get('/reports/customer-statement',      [AdminReports::class, 'customerStatement'])->name('reports.customer-statement');
+        Route::get('/reports/company-performance',     [AdminReports::class, 'companyPerformance'])->name('reports.company-performance');
+        Route::get('/reports/service-usage',           [AdminReports::class, 'serviceUsage'])->name('reports.service-usage');
         Route::resource('companies', AdminCompanies::class);
         Route::post('companies/{company}/sites', [AdminCompanies::class, 'storeSite'])->name('companies.sites.store');
         Route::patch('companies/{company}/sites/{site}', [AdminCompanies::class, 'updateSite'])->name('companies.sites.update');

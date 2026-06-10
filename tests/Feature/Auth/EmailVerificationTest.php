@@ -24,7 +24,7 @@ class EmailVerificationTest extends TestCase
 
     public function test_email_can_be_verified(): void
     {
-        $user = User::factory()->unverified()->create();
+        $user = User::factory()->customer()->unverified()->create();
 
         Event::fake();
 
@@ -38,7 +38,7 @@ class EmailVerificationTest extends TestCase
 
         Event::assertDispatched(Verified::class);
         $this->assertTrue($user->fresh()->hasVerifiedEmail());
-        $response->assertRedirect(route('dashboard', absolute: false).'?verified=1');
+        $response->assertRedirect(route('portal.work-orders.index').'?verified=1');
     }
 
     public function test_email_is_not_verified_with_invalid_hash(): void

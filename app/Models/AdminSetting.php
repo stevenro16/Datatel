@@ -20,6 +20,8 @@ class AdminSetting extends Model
     public static function set(string $key, mixed $value): void
     {
         static::updateOrCreate(['key' => $key], ['value' => $value]);
-        Cache::forget("admin_setting_{$key}");
+        // Re-prime rather than forget: avoids a stale-read window and a DB
+        // re-fetch stampede from readers that hit get() right after a save.
+        Cache::put("admin_setting_{$key}", $value, 3600);
     }
 }

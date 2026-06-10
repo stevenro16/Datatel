@@ -3,15 +3,11 @@
 @php use App\Models\Invoice; @endphp
 
 @section('content')
-@php
-    $urgencyBg    = ['emergency'=>'#fee2e2','urgent'=>'#fef3c7','routine'=>'#f3f4f6'][$workOrder->urgency] ?? '#f3f4f6';
-    $urgencyColor = ['emergency'=>'#991b1b','urgent'=>'#92400e','routine'=>'#374151'][$workOrder->urgency] ?? '#374151';
-@endphp
 <div style="margin-bottom:1.5rem;">
     <a href="{{ route('portal.work-orders.index') }}" style="color:var(--accent);text-decoration:none;font-size:.9rem;">← My Work Orders</a>
     <div style="display:flex;align-items:center;gap:.75rem;margin-top:.4rem;flex-wrap:wrap;">
         <h1 class="page-title" style="margin:0;">{{ $workOrder->woLabel() }}</h1>
-        <span style="padding:.25rem .75rem;border-radius:999px;font-size:.78rem;font-weight:700;background:{{ $urgencyBg }};color:{{ $urgencyColor }};">{{ ucfirst($workOrder->urgency) }}</span>
+        <x-wo.urgency-badge :work-order="$workOrder" />
         <span class="badge badge-{{ $workOrder->status }}">{{ str_replace('_',' ',$workOrder->status) }}</span>
     </div>
 </div>
@@ -1375,24 +1371,25 @@ function expandDetails() {
     if (summary) summary.style.display  = 'none';
 }
 
-function toggleDetails() {
+function collapseDetails() {
     const body    = document.getElementById('details-body');
     const summary = document.getElementById('details-collapsed-summary');
     const chevron = document.getElementById('details-chevron');
+    if (!body || body.dataset.collapsed === '1') return;
+    body.style.gridTemplateRows = '0fr';
+    body.style.opacity          = '0';
+    body.dataset.collapsed      = '1';
+    if (chevron) chevron.style.transform = 'rotate(180deg)';
+    if (summary) summary.style.display  = 'block';
+}
+
+function toggleDetails() {
+    const body = document.getElementById('details-body');
     if (!body) return;
-    const collapsed = body.dataset.collapsed === '1';
-    if (collapsed) {
-        body.style.gridTemplateRows = '1fr';
-        body.style.opacity          = '1';
-        body.dataset.collapsed      = '0';
-        if (chevron) chevron.style.transform = 'rotate(0deg)';
-        if (summary) summary.style.display  = 'none';
+    if (body.dataset.collapsed === '1') {
+        expandDetails();
     } else {
-        body.style.gridTemplateRows = '0fr';
-        body.style.opacity          = '0';
-        body.dataset.collapsed      = '1';
-        if (chevron) chevron.style.transform = 'rotate(180deg)';
-        if (summary) summary.style.display  = 'block';
+        collapseDetails();
     }
 }
 
@@ -1407,10 +1404,25 @@ function setEditBtnActive(active) {
 function toggleEdit() {
     const display = document.getElementById('details-display');
     const form    = document.getElementById('details-edit-form');
+    const body    = document.getElementById('details-body');
     const editing = form.style.display === 'none';
-    if (editing) expandDetails();
-    display.style.display = editing ? 'none' : '';
-    form.style.display    = editing ? '' : 'none';
+    if (editing) {
+        // Record the card's state before edit auto-expands it, so Cancel can
+        // restore it to exactly that size (collapsed stays collapsed, an
+        // already-expanded card stays expanded).
+        form.dataset.wasCollapsed = body ? body.dataset.collapsed : '1';
+        expandDetails();
+        display.style.display = 'none';
+        form.style.display    = '';
+    } else {
+        // Leaving edit mode (Cancel or toggling Edit off) restores the pre-edit
+        // size: only shrink back if it was collapsed before editing.
+        display.style.display = '';
+        form.style.display    = 'none';
+        if (form.dataset.wasCollapsed !== '0') {
+            collapseDetails();
+        }
+    }
     setEditBtnActive(editing);
 }
 
@@ -1420,6 +1432,9 @@ document.addEventListener('DOMContentLoaded', function() {
     if (form) {
         document.getElementById('details-display').style.display = 'none';
         form.style.display = '';
+        // Page reloaded into edit mode after a validation error — the card's
+        // default (pre-edit) state is collapsed, so Cancel should shrink back.
+        form.dataset.wasCollapsed = '1';
         setEditBtnActive(true);
         expandDetails();
     }

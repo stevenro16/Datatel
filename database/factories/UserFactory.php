@@ -42,4 +42,31 @@ class UserFactory extends Factory
             'email_verified_at' => null,
         ]);
     }
+
+    /**
+     * Active customer — passes RoleMiddleware (pending customers get redirected).
+     */
+    public function customer(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role'   => User::ROLE_CUSTOMER,
+            'status' => User::STATUS_ACTIVE,
+        ]);
+    }
+
+    public function employee(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role'   => User::ROLE_EMPLOYEE,
+            'status' => User::STATUS_ACTIVE,
+        ]);
+    }
+
+    public function admin(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role'   => User::ROLE_ADMIN,
+            'status' => User::STATUS_ACTIVE,
+        ]);
+    }
 }

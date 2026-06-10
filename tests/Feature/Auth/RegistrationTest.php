@@ -26,6 +26,7 @@ class RegistrationTest extends TestCase
         ]);
 
         $this->assertAuthenticated();
-        $response->assertRedirect(route('dashboard', absolute: false));
+        // New registrations are pending customers and land on the approval holding page.
+        $response->assertRedirect(route('account.pending'));
     }
 }

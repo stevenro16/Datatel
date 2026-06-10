@@ -28,8 +28,9 @@ class ProfileTest extends TestCase
         $response = $this
             ->actingAs($user)
             ->patch('/profile', [
-                'name' => 'Test User',
-                'email' => 'test@example.com',
+                'name'  => 'Test User',
+                'title' => 'Facilities Manager',
+                'phone' => '555-123-4567',
             ]);
 
         $response
@@ -39,26 +40,25 @@ class ProfileTest extends TestCase
         $user->refresh();
 
         $this->assertSame('Test User', $user->name);
-        $this->assertSame('test@example.com', $user->email);
-        $this->assertNull($user->email_verified_at);
+        $this->assertSame('Facilities Manager', $user->title);
+        $this->assertSame('555-123-4567', $user->phone);
     }
 
-    public function test_email_verification_status_is_unchanged_when_the_email_address_is_unchanged(): void
+    public function test_email_cannot_be_changed_via_profile_update(): void
     {
         $user = User::factory()->create();
+        $originalEmail = $user->email;
 
-        $response = $this
+        $this
             ->actingAs($user)
             ->patch('/profile', [
-                'name' => 'Test User',
-                'email' => $user->email,
+                'name'  => 'Test User',
+                'email' => 'attacker@example.com',
             ]);
 
-        $response
-            ->assertSessionHasNoErrors()
-            ->assertRedirect('/profile');
-
-        $this->assertNotNull($user->refresh()->email_verified_at);
+        // ProfileUpdateRequest deliberately excludes email — it must not change.
+        $this->assertSame($originalEmail, $user->refresh()->email);
+        $this->assertNotNull($user->email_verified_at);
     }
 
     public function test_user_can_delete_their_account(): void
@@ -76,7 +76,8 @@ class ProfileTest extends TestCase
             ->assertRedirect('/');
 
         $this->assertGuest();
-        $this->assertNull($user->fresh());
+        // Users are soft-deleted, not removed.
+        $this->assertSoftDeleted($user);
     }
 
     public function test_correct_password_must_be_provided_to_delete_account(): void

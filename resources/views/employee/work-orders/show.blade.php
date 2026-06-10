@@ -10,9 +10,6 @@
     $photos = $workOrder->attachments->filter(fn($a) => str_starts_with($a->mime_type, 'image/'));
     $docs   = $workOrder->attachments->filter(fn($a) => !str_starts_with($a->mime_type, 'image/'));
     $previewable = ['application/pdf', 'text/plain'];
-
-    $urgencyBg    = ['emergency'=>'#fee2e2','urgent'=>'#fef3c7','routine'=>'#f3f4f6'][$workOrder->urgency] ?? '#f3f4f6';
-    $urgencyColor = ['emergency'=>'#991b1b','urgent'=>'#92400e','routine'=>'#374151'][$workOrder->urgency] ?? '#374151';
 @endphp
 
 @section('content')
@@ -22,7 +19,7 @@
     <a href="{{ route('employee.calendar') }}" style="color:var(--accent);text-decoration:none;font-size:.9rem;">← Calendar</a>
     <div style="display:flex;align-items:center;gap:.75rem;margin-top:.4rem;flex-wrap:wrap;">
         <h1 class="page-title" style="margin:0;">{{ $workOrder->woLabel() }}</h1>
-        <span style="padding:.25rem .75rem;border-radius:999px;font-size:.78rem;font-weight:700;background:{{ $urgencyBg }};color:{{ $urgencyColor }};">{{ ucfirst($workOrder->urgency) }}</span>
+        <x-wo.urgency-badge :work-order="$workOrder" />
         <span class="badge badge-{{ $workOrder->status }}">{{ str_replace('_',' ',$workOrder->status) }}</span>
         <div style="margin-left:auto;">
             @if($canComplete)

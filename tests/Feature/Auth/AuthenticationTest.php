@@ -19,7 +19,7 @@ class AuthenticationTest extends TestCase
 
     public function test_users_can_authenticate_using_the_login_screen(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->customer()->create();
 
         $response = $this->post('/login', [
             'email' => $user->email,
@@ -27,7 +27,31 @@ class AuthenticationTest extends TestCase
         ]);
 
         $this->assertAuthenticated();
-        $response->assertRedirect(route('dashboard', absolute: false));
+        $response->assertRedirect(route('portal.work-orders.index'));
+    }
+
+    public function test_employee_login_redirects_to_calendar(): void
+    {
+        $user = User::factory()->employee()->create();
+
+        $response = $this->post('/login', [
+            'email' => $user->email,
+            'password' => 'password',
+        ]);
+
+        $response->assertRedirect(route('employee.calendar'));
+    }
+
+    public function test_admin_login_redirects_to_dashboard(): void
+    {
+        $user = User::factory()->admin()->create();
+
+        $response = $this->post('/login', [
+            'email' => $user->email,
+            'password' => 'password',
+        ]);
+
+        $response->assertRedirect(route('admin.dashboard'));
     }
 
     public function test_users_can_not_authenticate_with_invalid_password(): void

@@ -31,16 +31,7 @@ class AuthenticatedSessionController extends Controller
         $user = $request->user();
         $user->update(['last_login_at' => now()]);
 
-        return redirect()->intended($this->redirectPath($user->role));
-    }
-
-    private function redirectPath(string $role): string
-    {
-        return match ($role) {
-            'admin'    => route('admin.dashboard'),
-            'employee' => route('employee.calendar'),
-            default    => route('portal.work-orders.index'),
-        };
+        return redirect()->intended($user->homeRoute());
     }
 
     /**

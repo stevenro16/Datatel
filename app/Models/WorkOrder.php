@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class WorkOrder extends Model
 {
-    use SoftDeletes;
+    use HasFactory, SoftDeletes;
 
     protected static function booted(): void
     {
@@ -38,6 +39,89 @@ class WorkOrder extends Model
     const URGENCY_ROUTINE   = 'routine';
     const URGENCY_URGENT    = 'urgent';
     const URGENCY_EMERGENCY = 'emergency';
+
+    /**
+     * Canonical (admin-facing) status labels. Customer-facing views may relabel
+     * (e.g. "Submitted" for new), but this is the single source of truth for the
+     * default display label and for any non-customer surface.
+     */
+    const STATUS_LABELS = [
+        self::STATUS_NEW                => 'New',
+        self::STATUS_TRIAGED            => 'Triaged',
+        self::STATUS_SCHEDULED          => 'Scheduled',
+        self::STATUS_AWAITING_FEEDBACK  => 'Awaiting Customer Feedback',
+        self::STATUS_SERVICES_PERFORMED => 'Services Performed',
+        self::STATUS_INVOICE_PREPARED   => 'Invoice Prepared',
+        self::STATUS_BILLED             => 'Billed',
+        self::STATUS_COMPLETED          => 'Completed',
+        self::STATUS_CANCELED           => 'Canceled',
+    ];
+
+    const URGENCY_LABELS = [
+        self::URGENCY_ROUTINE   => 'Routine',
+        self::URGENCY_URGENT    => 'Urgent',
+        self::URGENCY_EMERGENCY => 'Emergency',
+    ];
+
+    /**
+     * Urgency pill colors [bg, text] — single source of truth so the admin,
+     * customer, and employee portals can never drift apart.
+     */
+    const URGENCY_COLORS = [
+        self::URGENCY_EMERGENCY => ['bg' => '#fee2e2', 'text' => '#991b1b'],
+        self::URGENCY_URGENT    => ['bg' => '#fef3c7', 'text' => '#92400e'],
+        self::URGENCY_ROUTINE   => ['bg' => '#f3f4f6', 'text' => '#374151'],
+    ];
+
+    public function statusLabel(): string
+    {
+        return self::STATUS_LABELS[$this->status] ?? ucfirst(str_replace('_', ' ', (string) $this->status));
+    }
+
+    public function urgencyLabel(): string
+    {
+        return self::URGENCY_LABELS[$this->urgency] ?? ucfirst((string) $this->urgency);
+    }
+
+    /**
+     * @return array{bg: string, text: string}
+     */
+    public function urgencyColors(): array
+    {
+        return self::URGENCY_COLORS[$this->urgency] ?? ['bg' => '#f3f4f6', 'text' => '#374151'];
+    }
+
+    /** Statuses for an order that has not yet been scheduled. */
+    const PRE_SCHEDULED_STATUSES = [self::STATUS_NEW, self::STATUS_TRIAGED];
+
+    /**
+     * When work is completed on an order that was never scheduled (still New or
+     * Triaged), back-fill a Scheduled step so the lifecycle and audit trail stay
+     * continuous instead of jumping straight to Services Performed.
+     *
+     * Returns true if a Scheduled transition was written.
+     */
+    public function backfillScheduledStep(?int $changedBy): bool
+    {
+        if (!in_array($this->status, self::PRE_SCHEDULED_STATUSES)) {
+            return false;
+        }
+
+        $old = $this->status;
+        $this->update(['status' => self::STATUS_SCHEDULED]);
+
+        WorkOrderHistory::create([
+            'work_order_id' => $this->id,
+            'changed_by'    => $changedBy,
+            'field_name'    => 'status',
+            'old_value'     => $old,
+            'new_value'     => self::STATUS_SCHEDULED,
+            'comment'       => 'Auto-advanced to Scheduled when the work was marked complete without a prior scheduled visit.',
+            'changed_at'    => now(),
+        ]);
+
+        return true;
+    }
 
     protected $fillable = [
         'customer_id', 'company_id', 'status', 'confirmation_status', 'urgency', 'building_type',

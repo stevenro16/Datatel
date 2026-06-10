@@ -26,6 +26,9 @@ Homestead.json
 Homestead.yaml
 Thumbs.db
 
+# PHP error log written by shared hosting into the web root — never commit
+/public/error_log
+
 # Local SQLite database (production uses MySQL)
 /database/database.sqlite
 /database/database.sqlite-shm

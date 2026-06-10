@@ -18,14 +18,14 @@ Full spec: `DataTel_Website_Specification.docx` | Legacy DB reference: `Old_DB.t
 
 | Layer | Choice |
 |-------|--------|
-| Framework | Laravel 13 (PHP 8.4) |
+| Framework | Laravel 12 (PHP 8.3) |
 | Database | SQLite (local dev) / MySQL 8.0 (production) |
 | Auth | Laravel Breeze (Blade stack) + custom RoleMiddleware |
 | PDF | barryvdh/laravel-dompdf |
 | Image/Signature | intervention/image |
 | SMS | twilio/sdk (config-gated, off by default) |
 | Frontend | Blade templates, CSS Grid/Flexbox, minimal vanilla JS |
-| Dev environment | `php artisan serve` (local PHP 8.4 via WinGet) + SQLite — no Docker needed for local dev |
+| Dev environment | `php artisan serve` (local PHP 8.3 via WinGet) + SQLite — no Docker needed for local dev |
 
 Design colors — Primary: `#1A3C5E`, Accent: `#2E86C1`, Content bg: `#E8ECF0`, Body bg: `#F8F9FA`
 Portal/employee header: **white** (`#fff`) with `1px solid #dde` bottom border — nav links use `var(--primary)` / `var(--accent)` (not white)
@@ -126,17 +126,17 @@ New → Triaged → Scheduled → Awaiting Customer Feedback
 ### Invoice Status Flow
 
 ```
-Draft → Issued (new) → Billed → Completed
-                              → Canceled
+Draft → Issued → Payment Received → Completed
+              → Canceled
 ```
 
-- `Draft` — invoice created by admin, being prepared
-- `Issued` (`new`) — invoice sent to customer
-- `Billed` — customer signed or payment expected
-- `Completed` — payment confirmed
-- `Canceled` — invoice voided
+- `draft` — invoice created by admin, being prepared
+- `issued` — invoice sent to customer
+- `payment_received` — customer submitted/confirmed payment
+- `completed` — payment confirmed and invoice closed
+- `canceled` — invoice voided
 
-Invoice constants on `Invoice` model: `STATUS_DRAFT`, `STATUS_NEW`, `STATUS_BILLED`, `STATUS_COMPLETED`, `STATUS_CANCELED`.
+Invoice constants on `Invoice` model: `STATUS_DRAFT`, `STATUS_ISSUED`, `STATUS_PAYMENT_RECEIVED`, `STATUS_COMPLETED`, `STATUS_CANCELED`.
 
 The invoice show page uses the same stepper UI pattern as work orders (dots, connector lines, action buttons, override modal).
 
@@ -190,6 +190,7 @@ Accessed via `AdminSetting::get('key', $default)` — key-value store in `admin_
 - Employee detail view shows: all notes, photos, documents, history timeline, assigned team, and completion signature if already collected
 - **Mark Services Performed** button opens a signature modal with HTML5 canvas (mouse + touch support, `passive: false` on touch events)
 - On completion: PNG saved to `storage/app/signatures/work-orders/`, `WorkOrderSignature` created, status → `services_performed`, `WorkOrderHistory` entry written
+- **Status back-fill**: if an employee completes an order that was never scheduled (still `new`/`triaged`), `WorkOrder::backfillScheduledStep()` first records a `scheduled` transition so the lifecycle/audit trail stays continuous (two history rows). Admins are exempt — the admin **Override Status** modal sets any status directly.
 
 ### Customer Portal — Work Orders
 
@@ -201,6 +202,14 @@ Accessed via `AdminSetting::get('key', $default)` — key-value store in `admin_
 - Completion signature displayed in the right sidebar when work has been performed
 - On completed work orders that have an invoice, the invoice details are shown inline below the WO details card
 - **Printable invoice**: `portal.invoices.print` route → `Customer\InvoiceController::printView()` → standalone Blade view (`customer/invoices/print.blade.php`, no layout extension). Includes logo, WO details, invoice line items, totals, payment terms, footer note. Opened in a new tab.
+
+### Reports (admin)
+
+- Catalog at `/admin/reports` (`admin.reports.index`), linked in the sidebar under Customer Analytics. Each report card is a small GET form that opens the report in a new tab.
+- 9 reports across four areas: **Work Orders** (summary, open-order aging), **Invoicing** (invoice register, A/R aging), **Technicians** (productivity, time detail), **Customers & Companies** (customer statement, company performance, service-catalog usage).
+- `ReportController` (one method per report) resolves the period via `AnalyticsService::resolveRange()` and pulls data from `ReportService`. Range reports accept `range`/`from`/`to`; some accept `customer_id`/`company_id`/`tech_id`. Aging/AR are "as-of-now" snapshots.
+- Reports render with `resources/views/admin/reports/layout.blade.php` — a **standalone** print layout (does NOT extend `layouts.admin`), with `@media print` rules, repeating table headers (`thead { display: table-header-group }`), a fixed print footer, and a Print/Close bar. Each report view does `@extends('admin.reports.layout')` + `@section('body')`.
+- Completion/billing dates are derived from `work_order_history` (`field_name='status'`, `new_value='completed'`) since there is no `completed_at` column. Service→revenue attribution isn't available (line items are free-text), so Service Usage uses catalog list price × request count as an estimate.
 
 ### Service Catalog Admin
 
@@ -219,8 +228,11 @@ Accessed via `AdminSetting::get('key', $default)` — key-value store in `admin_
 app/Http/Controllers/
   Auth/                  Laravel Breeze auth controllers
   Admin/                 Admin portal controllers
-    WorkOrderController  — includes assignEmployee, techSchedule, requestConfirmation
+    WorkOrderController  — CRUD/show + updateStatus, updateUrgency, notes, attachments
+    WorkOrderScheduleController   — scheduling, visits, travel-time, confirmation workflows
+    WorkOrderAssignmentController — assign / unassign employees
     InvoiceController    — includes updateStatus()
+    ReportController     — Reports catalog + 9 print reports (admin.reports.*)
     ServiceTypeController — service catalog CRUD + toggle
     CalendarController   — admin calendar
   Customer/
@@ -234,12 +246,12 @@ app/Http/Middleware/
 app/Models/              Eloquent models (one per DB table)
   WorkOrder.php          Status + urgency + confirmation constants
   WorkOrderSignature.php Employee-collected completion signatures ($timestamps = false)
-  Invoice.php            STATUS_DRAFT/NEW/BILLED/COMPLETED/CANCELED constants
+  Invoice.php            STATUS_DRAFT/ISSUED/PAYMENT_RECEIVED/COMPLETED/CANCELED constants
   InvoiceLineItem.php    line_total is a STORED generated column
   AdminSetting.php       get(key, default) / set(key, value) — cached 1 hour
 app/Services/
-  NotificationService.php  Email + SMS dispatch
-  ReportService.php        Report data queries + export
+  AnalyticsService.php   Dashboard/analytics KPIs, time-series bucketing, leaderboards
+  ReportService.php      Query/aggregation logic behind the admin Reports section
 resources/views/
   layouts/               Base layouts (public, portal, admin, employee)
     portal-styles.blade.php  Shared CSS — alert classes, badge classes, etc.
@@ -335,6 +347,12 @@ WorkOrderHistory::create([
 ->orderByRaw('scheduled_at IS NULL, scheduled_at ASC')
 ```
 Works in both SQLite and MySQL.
+
+### Status & urgency metadata (single source of truth)
+`WorkOrder` holds the canonical maps so the three portals can't drift:
+- `WorkOrder::STATUS_LABELS` + `statusLabel()` — canonical (admin-facing) labels. Customer views may relabel (e.g. "Submitted" for `new`).
+- `WorkOrder::URGENCY_LABELS` / `URGENCY_COLORS` + `urgencyLabel()` / `urgencyColors()`.
+- Render the urgency pill with the shared component: `<x-wo.urgency-badge :work-order="$workOrder" />` (used by the customer & employee detail headers). Status badges still use the `badge badge-{status}` CSS classes from `portal-styles.blade.php`.
 
 ### Service types toggle (never delete)
 ```php

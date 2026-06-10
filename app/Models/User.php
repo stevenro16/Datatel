@@ -40,6 +40,18 @@ class User extends Authenticatable
         ];
     }
 
+    /**
+     * Role-appropriate landing route — the app has no generic 'dashboard' route.
+     */
+    public function homeRoute(): string
+    {
+        return match ($this->role) {
+            self::ROLE_ADMIN    => route('admin.dashboard'),
+            self::ROLE_EMPLOYEE => route('employee.calendar'),
+            default             => route('portal.work-orders.index'),
+        };
+    }
+
     public function isAdmin(): bool    { return $this->role === self::ROLE_ADMIN; }
     public function isEmployee(): bool { return $this->role === self::ROLE_EMPLOYEE; }
     public function isCustomer(): bool { return $this->role === self::ROLE_CUSTOMER; }
